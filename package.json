@@ -31,14 +31,10 @@
     "type": "git",
     "url": "https://github.com/creditkarma/consul-client"
   },
-  "peerDependencies": {
-    "@types/request": "^2.47.0"
-  },
   "devDependencies": {
     "@types/code": "^4.0.3",
     "@types/lab": "^11.1.0",
     "@types/node": "^8.0.51",
-    "@types/request": "^2.47.0",
     "code": "^4.1.0",
     "lab": "^14.3.1",
     "rimraf": "^2.6.2",
@@ -48,6 +44,7 @@
   },
   "dependencies": {
     "@types/request-promise-native": "^1.0.12",
+    "@types/request": "^2.47.0",
     "request": "^2.83.0",
     "request-promise-native": "^1.0.5"
   }
