@@ -1,0 +1,20 @@
+// Place your settings in this file to overwrite default and user settings.
+{
+  "editor.tabSize": 4,
+  "editor.rulers": [
+    110
+  ],
+  "editor.detectIndentation": false,
+  "files.trimTrailingWhitespace": true,
+  "files.insertFinalNewline": true,
+  "editor.wordWrapColumn": 110,
+  "prettier.singleQuote": true,
+  "prettier.printWidth": 110,
+  "prettier.tabWidth": 4,
+  "prettier.semi": false,
+  "files.exclude": {
+    "**/.DS_Store": true,
+    "coverage": true,
+    "coverage.lcov": true
+  },
+  "typescript.tsdk": "node_modules/typescript/lib"

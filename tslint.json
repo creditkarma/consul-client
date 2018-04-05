@@ -17,6 +17,10 @@
             true,
             "single",
             "avoid-escape"
+        ],
+        "variable-name": [
+            true,
+            "allow-leading-underscore"
         ]
 	}
 }
