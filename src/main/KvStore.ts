@@ -14,35 +14,6 @@ import { Observable } from './Observable'
 
 const defaultAddress: string = process.env[CONSUL_ADDRESS] || DEFAULT_HOST
 
-function _watch<T>(
-    client: ConsulClient,
-    key: IKey,
-    index: number | undefined,
-    observer: Observable<T>,
-    requestOptions: CoreOptions,
-): void {
-    client.send(
-        getRequest({ key, index }),
-        requestOptions,
-    ).then((res: RequestResponse) => {
-        switch (res.statusCode) {
-            case 200:
-                const metadata: Array<IConsulMetadata> = res.body
-                observer.update(decodeBase64(metadata[0].Value) as T)
-                _watch(client, key, metadata[0].ModifyIndex, observer, requestOptions)
-                break
-
-            case 404:
-                console.error(`[consul-client] Unable to find value for key[${key}]`)
-                break
-
-            default:
-                console.error(`[consul-client] Error retrieving key[${key}]: `, res.statusMessage)
-                break
-        }
-    })
-}
-
 /**
  * This class wraps Consul's key/value HTTP API
  */
@@ -50,11 +21,13 @@ export class KvStore {
     private client: ConsulClient
     private consulAddress: string
     private baseOptions: CoreOptions
+    private watchMap: Map<string, Observable<any>>
 
     constructor(consulAddress: string = defaultAddress, baseOptions: CoreOptions = {}) {
         this.consulAddress = consulAddress
         this.baseOptions = baseOptions
         this.client = new ConsulClient(this.consulAddress)
+        this.watchMap = new Map()
     }
 
     /**
@@ -92,10 +65,43 @@ export class KvStore {
         })
     }
 
+    public ignore(key: IKey): void {
+        this.watchMap.delete(key.path)
+    }
+
     public watch<T>(key: IKey, requestOptions: CoreOptions = {}): Observable<T> {
         const extendedOptions = deepMerge(this.baseOptions, requestOptions)
         const observer: Observable<T> = new Observable()
-        _watch(this.client, key, undefined, observer, extendedOptions)
+        this.watchMap.set(key.path, observer)
+
+        const _watch = (index?: number) => {
+            this.client.send(
+                getRequest({ key, index }),
+                extendedOptions,
+            ).then((res: RequestResponse) => {
+                if (this.watchMap.has(key.path)) {
+                    switch (res.statusCode) {
+                        case 200:
+                            const metadata: Array<IConsulMetadata> = res.body
+                            observer.update(decodeBase64(metadata[0].Value) as T)
+                            _watch(metadata[0].ModifyIndex)
+                            break
+
+                        case 404:
+                            console.error(`[consul-client] Unable to find value for key[${key}]`)
+                            break
+
+                        default:
+                            console.error(`[consul-client] Error retrieving key[${key}]: `, res.statusMessage)
+                            break
+                    }
+                }
+            })
+        }
+
+        // Start watching
+        _watch()
+
         return observer
     }
 
