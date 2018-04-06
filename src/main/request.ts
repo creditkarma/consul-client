@@ -1,4 +1,9 @@
-import { IConsulDeleteRequest, IConsulGetRequest, IConsulUpdateRequest, RequestType } from './types'
+import {
+    IConsulDeleteRequest,
+    IConsulGetRequest,
+    IConsulUpdateRequest,
+    RequestType,
+} from './types'
 
 export const DEFAULT_GET_REQUEST: IConsulGetRequest = {
     type: RequestType.GetRequest,

@@ -74,7 +74,7 @@ describe('KvStore', () => {
     })
 
     describe('watch', () => {
-        it('should read a string from consul', (done) => {
+        it('should return an observer that updates any time the value updates', (done) => {
             let count: number = 0
 
             client.watch<string>({ path: 'str' }).onValue((val: string): void => {

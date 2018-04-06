@@ -3,7 +3,12 @@ import * as rpn from 'request-promise-native'
 
 import { ConsulRequest, RequestType } from './types'
 
-import { cleanQueryParams, deepMerge, removeLeadingTrailingSlash, requestToPath } from './utils'
+import {
+    cleanQueryParams,
+    deepMerge,
+    removeLeadingTrailingSlash,
+    requestToPath,
+} from './utils'
 
 import {
     CONSUL_ADDRESS,
