@@ -12,6 +12,8 @@ import { decodeBase64, deepMerge } from './utils'
 
 import { Observer } from './Observer'
 
+import * as logger from './logger'
+
 const defaultAddress: string = process.env[CONSUL_ADDRESS] || DEFAULT_HOST
 
 /**
@@ -88,11 +90,11 @@ export class KvStore {
                             break
 
                         case 404:
-                            console.error(`[consul-client] Unable to find value for key[${key.path}]`)
+                            logger.error(`Unable to find value for key[${key.path}]`)
                             break
 
                         default:
-                            console.error(`[consul-client] Error retrieving key[${key.path}]: `, res.statusMessage)
+                            logger.error(`Error retrieving key[${key.path}]: `, res.statusMessage)
                             break
                     }
                 }

@@ -77,7 +77,6 @@ describe('KvStore', () => {
             let count: number = 0
 
             client.watch<string>({ path: 'str' }).onValue((val: string): void => {
-                console.log('val: ', val)
                 if (count === 0) {
                     expect(val).to.equal(mockStr)
                     setTimeout(() => {
