@@ -15,7 +15,7 @@ $ npm install --save @creditkarma/consul-client
 The K/V store provides a simple JS API for getting values in and out of Consul. This API is primarily exposed through the KvStore class.
 
 ```typescript
-import { KvStore, IKey } from '@creditkarma/consul-client'
+import { KvStore, IKey, Observer } from '@creditkarma/consul-client'
 
 // Instantiate KvStore with location of Consul, default is localhost:8500
 const kvStore: KvStore = new KvStore('http://localhost:8500')
@@ -52,6 +52,26 @@ kvStore.delete({ path: 'key', dc: 'dc1' }).then((success: boolean) => {
     // delete was successful
   }
 })
+```
+
+### Observer
+
+An `Observer` is the object returned from a call to `watch`.
+
+It has three public methods:
+
+```typescript
+const observer: Observer<string> = kvStore.watch({ path: 'key', dc: 'dc1' })
+
+observer.onValue((val: string) => {
+    // runs anytime the value changes, initially fires with current value
+})
+
+// Get the current value, returns null if no value
+const currentVal: string | null = observer.current()
+
+// Get the previous value, returns null in no previous value
+const previousVal: string | null = observer.previous()
 ```
 
 ### Request Options
