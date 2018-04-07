@@ -11,7 +11,6 @@ describe('KvStore', () => {
     const client = new KvStore('http://127.0.0.1:8500')
     const mockObj = { value: 'bar' }
     const mockStr = 'test me'
-    const updatedStr = 'updated str'
     const mockNum = 5
     const mockBool = true
 
@@ -78,11 +77,19 @@ describe('KvStore', () => {
             let count: number = 0
 
             client.watch<string>({ path: 'str' }).onValue((val: string): void => {
+                console.log('val: ', val)
                 if (count === 0) {
                     expect(val).to.equal(mockStr)
-                    client.set({ path: 'str' }, updatedStr)
+                    setTimeout(() => {
+                        client.set({ path: 'str' }, 'updated-str')
+                    }, 1000)
                 } else if (count === 1) {
-                    expect(val).to.equal(updatedStr)
+                    expect(val).to.equal('updated-str')
+                    setTimeout(() => {
+                        client.set({ path: 'str' }, 'updated-again')
+                    }, 1000)
+                } else if (count === 2) {
+                    expect(val).to.equal('updated-again')
                     done()
                 } else {
                     throw new Error('Nope')

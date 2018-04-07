@@ -10,7 +10,7 @@ import { CONSUL_ADDRESS, DEFAULT_HOST } from './constants'
 
 import { decodeBase64, deepMerge } from './utils'
 
-import { Observable } from './Observable'
+import { Observer } from './Observer'
 
 const defaultAddress: string = process.env[CONSUL_ADDRESS] || DEFAULT_HOST
 
@@ -21,7 +21,7 @@ export class KvStore {
     private client: ConsulClient
     private consulAddress: string
     private baseOptions: CoreOptions
-    private watchMap: Map<string, Observable<any>>
+    private watchMap: Map<string, Observer<any>>
 
     constructor(consulAddress: string = defaultAddress, baseOptions: CoreOptions = {}) {
         this.consulAddress = consulAddress
@@ -69,9 +69,9 @@ export class KvStore {
         this.watchMap.delete(key.path)
     }
 
-    public watch<T>(key: IKey, requestOptions: CoreOptions = {}): Observable<T> {
+    public watch<T>(key: IKey, requestOptions: CoreOptions = {}): Observer<T> {
         const extendedOptions = deepMerge(this.baseOptions, requestOptions)
-        const observer: Observable<T> = new Observable()
+        const observer: Observer<T> = new Observer()
         this.watchMap.set(key.path, observer)
 
         const _watch = (index?: number) => {
@@ -88,11 +88,11 @@ export class KvStore {
                             break
 
                         case 404:
-                            console.error(`[consul-client] Unable to find value for key[${key}]`)
+                            console.error(`[consul-client] Unable to find value for key[${key.path}]`)
                             break
 
                         default:
-                            console.error(`[consul-client] Error retrieving key[${key}]: `, res.statusMessage)
+                            console.error(`[consul-client] Error retrieving key[${key.path}]: `, res.statusMessage)
                             break
                     }
                 }

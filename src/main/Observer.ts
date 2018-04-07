@@ -1,6 +1,6 @@
 export type ValueCallback<T> = (value: T) => void
 
-export class Observable<T> {
+export class Observer<T> {
     private _value: T | null
     private _previous: T | null
     private _listeners: Array<ValueCallback<T>> = []

@@ -1,4 +1,4 @@
 export * from './KvStore'
-export * from './Observable'
+export * from './Observer'
 export * from './request'
 export * from './types'
