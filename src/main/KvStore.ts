@@ -62,7 +62,7 @@ export class KvStore {
                     return Promise.resolve(null)
 
                 default:
-                    return Promise.reject(new Error(res.statusMessage))
+                    return Promise.reject(new Error(`${res.statusMessage}: ${res.body}`))
             }
         })
     }
@@ -94,7 +94,7 @@ export class KvStore {
                             break
 
                         default:
-                            logger.error(`Error retrieving key[${key.path}]: `, res.statusMessage)
+                            logger.error(`Error retrieving key[${key.path}]: ${res.statusMessage}: ${res.body}`)
                             break
                     }
                 }
