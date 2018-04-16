@@ -16,6 +16,12 @@ export interface ICatalogRequest {
     type: CatalogRequestType
     apiVersion: 'v1'
     section: 'catalog'
+    dc?: string
+    index?: string
+    near?: string
+    'node-meta'?: string
+    tag?: string
+    service?: string
 }
 
 export interface IConsulMetadata {

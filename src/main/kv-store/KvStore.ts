@@ -74,7 +74,7 @@ export class KvStore {
         const observer: Observer<T> = new Observer()
         this.watchMap.set(key.path, observer)
 
-        const _watch = (index?: number) => {
+        const _watch = (index?: string) => {
             this.client.send(
                 getRequest({ key, index }),
                 extendedOptions,
@@ -84,7 +84,7 @@ export class KvStore {
                         case 200:
                             const metadata: Array<IConsulMetadata> = res.body
                             observer.update(decodeBase64(metadata[0].Value) as T)
-                            _watch(metadata[0].ModifyIndex)
+                            _watch(res.headers['x-consul-index'] as string)
                             break
 
                         case 404:
