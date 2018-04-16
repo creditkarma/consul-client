@@ -13,7 +13,7 @@ export interface IKey {
     dc?: string
 }
 
-export interface IConsulRequest {
+export interface IKVRequest {
     type: RequestType
     apiVersion: 'v1'
     key: IKey
@@ -23,23 +23,26 @@ export interface IConsulRequest {
     section?: string
 }
 
-export interface IConsulGetRequest extends IConsulRequest {
+export interface IConsulGetRequest extends IKVRequest {
     type: RequestType.GetRequest
     section: 'kv'
 }
 
-export interface IConsulUpdateRequest<T = any> extends IConsulRequest {
+export interface IConsulUpdateRequest<T = any> extends IKVRequest {
     type: RequestType.UpdateRequest
     section: 'kv'
     value: T
 }
 
-export interface IConsulDeleteRequest extends IConsulRequest {
+export interface IConsulDeleteRequest extends IKVRequest {
     type: RequestType.DeleteRequest
     section: 'kv'
 }
 
-export type ConsulRequest<T = any> = IConsulGetRequest | IConsulUpdateRequest<T> | IConsulDeleteRequest
+export type KVRequest<T = any> =
+    IConsulGetRequest |
+    IConsulUpdateRequest<T> |
+    IConsulDeleteRequest
 
 export interface IConsulMetadata {
     CreateIndex: number

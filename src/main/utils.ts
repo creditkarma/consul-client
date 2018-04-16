@@ -1,4 +1,4 @@
-import { IConsulRequest, IQueryMap } from './types'
+import { IKVRequest, IQueryMap } from './kv-store/types'
 
 /**
  * Try to decode a base64 encoded string
@@ -35,7 +35,7 @@ export function cleanQueryParams(raw: IQueryMap): IQueryMap {
 /**
  * Given a ConsulRequest construct a path to the desired resource
  */
-export function requestToPath(req: IConsulRequest): string {
+export function requestToPath(req: IKVRequest): string {
     const tmp: string =
         req.subsection !== undefined
             ? `${req.apiVersion}/${req.section}/${req.subsection}/${req.key.path}`

@@ -1,4 +1,3 @@
-export * from './KvStore'
+export * from './catalog'
+export * from './kv-store'
 export * from './Observer'
-export * from './request'
-export * from './types'

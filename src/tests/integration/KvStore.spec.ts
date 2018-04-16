@@ -1,6 +1,6 @@
 import { expect } from 'code'
 import * as Lab from 'lab'
-import { KvStore } from '../../main/KvStore'
+import { KvStore } from '../../main'
 
 export const lab = Lab.script()
 

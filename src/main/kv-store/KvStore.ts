@@ -6,15 +6,13 @@ import { deleteRequest, getRequest, updateRequest } from './request'
 
 import { IConsulMetadata, IKey } from './types'
 
-import { CONSUL_ADDRESS, DEFAULT_HOST } from './constants'
+import { DEFAULT_ADDRESS } from '../constants'
 
-import { decodeBase64, deepMerge } from './utils'
+import { decodeBase64, deepMerge } from '../utils'
 
-import { Observer } from './Observer'
+import { Observer } from '../Observer'
 
-import * as logger from './logger'
-
-const defaultAddress: string = process.env[CONSUL_ADDRESS] || DEFAULT_HOST
+import * as logger from '../logger'
 
 /**
  * This class wraps Consul's key/value HTTP API
@@ -25,7 +23,7 @@ export class KvStore {
     private baseOptions: CoreOptions
     private watchMap: Map<string, Observer<any>>
 
-    constructor(consulAddress: string = defaultAddress, baseOptions: CoreOptions = {}) {
+    constructor(consulAddress: string = DEFAULT_ADDRESS, baseOptions: CoreOptions = {}) {
         this.consulAddress = consulAddress
         this.baseOptions = baseOptions
         this.client = new ConsulClient(this.consulAddress)
