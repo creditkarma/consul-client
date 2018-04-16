@@ -1,6 +1,8 @@
 import { CoreOptions, Response } from 'request'
 
 import { DEFAULT_ADDRESS } from '../constants'
+import { IQueryMap } from '../kv-store/types'
+import { splitQueryMap } from '../utils'
 import { ConsulClient } from './ConsulClient'
 import {
     CatalogRequestType,
@@ -38,11 +40,12 @@ export class Catalog {
         })
     }
 
-    public listNodes(): Promise<Array<INodeDescription>> {
+    public listNodes(dc?: string): Promise<Array<INodeDescription>> {
         return this.client.send({
             type: CatalogRequestType.ListNodesRequest,
             apiVersion: 'v1',
             section: 'catalog',
+            dc,
         }).then((res: Response) => {
             switch (res.statusCode) {
                 case 200:
@@ -54,11 +57,12 @@ export class Catalog {
         })
     }
 
-    public listServices(): Promise<IServiceMap> {
+    public listServices(dc?: string): Promise<IServiceMap> {
         return this.client.send({
             type: CatalogRequestType.ListServicesRequest,
             apiVersion: 'v1',
             section: 'catalog',
+            dc,
         }).then((res: Response) => {
             switch (res.statusCode) {
                 case 200:
@@ -70,12 +74,19 @@ export class Catalog {
         })
     }
 
-    public listNodesForService(serviceName: string): Promise<Array<IServiceDescription>> {
+    public listNodesForService(serviceName: string, dc?: string): Promise<Array<IServiceDescription>> {
+        const queryMap: IQueryMap = splitQueryMap(serviceName)
+
         return this.client.send({
             type: CatalogRequestType.ListServiceNodesRequest,
             apiVersion: 'v1',
             section: 'catalog',
             serviceName,
+            dc: queryMap.dc,
+            service: queryMap.service,
+            tag: queryMap.tag,
+            near: queryMap.near,
+            'node-meta': queryMap['node-meta'],
         }).then((res: Response) => {
             switch (res.statusCode) {
                 case 200:

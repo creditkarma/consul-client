@@ -5,7 +5,7 @@ export const enum RequestType {
 }
 
 export interface IQueryMap {
-    [key: string]: string | number | boolean | undefined
+    [key: string]: string | undefined
 }
 
 export interface IKey {
@@ -18,7 +18,7 @@ export interface IKVRequest {
     apiVersion: 'v1'
     key: IKey
     token?: string
-    index?: number
+    index?: string
     subsection?: string
     section?: string
 }

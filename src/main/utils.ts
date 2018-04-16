@@ -1,3 +1,4 @@
+import { CONSUL_KV_DC } from './constants'
 import { IKVRequest, IQueryMap } from './kv-store/types'
 
 /**
@@ -17,13 +18,31 @@ export function removeLeadingTrailingSlash(str: string): string {
     }
 }
 
+export function splitQueryMap(raw: string): IQueryMap {
+    const result: IQueryMap = {}
+    const parts = raw.split('?').filter((next) => next.trim() !== '')
+
+    if (parts.length > 1) {
+        const query = parts[1]
+        const pairs = query.split('&')
+        pairs.forEach((next) => {
+            const [key, value] = next.split('=')
+            result[key] = value
+        })
+    }
+
+    return result
+}
+
 export function cleanQueryParams(raw: IQueryMap): IQueryMap {
     const cleaned: IQueryMap = {}
+
+    raw.dc = raw.dc || process.env[CONSUL_KV_DC]
 
     for (const key in raw) {
         if (raw.hasOwnProperty(key)) {
             const value: any = raw[key]
-            if (value !== undefined && value !== null && value !== false) {
+            if (value !== undefined && value !== null && value !== 'false') {
                 cleaned[key] = value
             }
         }

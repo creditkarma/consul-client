@@ -4,7 +4,7 @@ import * as rpn from 'request-promise-native'
 import { CatalogRequest, CatalogRequestType } from './types'
 
 import {
-    // cleanQueryParams,
+    cleanQueryParams,
     deepMerge,
     removeLeadingTrailingSlash,
 } from '../utils'
@@ -50,6 +50,10 @@ export class ConsulClient {
                         body: req.paylaod,
                         method: 'PUT',
                         headers: headersForRequest(),
+                        qs: cleanQueryParams({
+                            dc: req.dc,
+                            index: req.index,
+                        }),
                     }),
                 ).promise()
 
@@ -59,6 +63,10 @@ export class ConsulClient {
                         uri: `${this.getPathForRequest(req)}/nodes`,
                         method: 'GET',
                         headers: headersForRequest(),
+                        qs: cleanQueryParams({
+                            dc: req.dc,
+                            index: req.index,
+                        }),
                     }),
                 ).promise()
 
@@ -68,6 +76,10 @@ export class ConsulClient {
                         uri: `${this.getPathForRequest(req)}/services`,
                         method: 'GET',
                         headers: headersForRequest(),
+                        qs: cleanQueryParams({
+                            dc: req.dc,
+                            index: req.index,
+                        }),
                     }),
                 ).promise()
 
@@ -77,6 +89,10 @@ export class ConsulClient {
                         uri: `${this.getPathForRequest(req)}/service/${req.serviceName}`,
                         method: 'GET',
                         headers: headersForRequest(),
+                        qs: cleanQueryParams({
+                            dc: req.dc,
+                            index: req.index,
+                        }),
                     }),
                 ).promise()
 
