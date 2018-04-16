@@ -1,22 +1,21 @@
 import { CoreOptions, RequestResponse } from 'request'
 import * as rpn from 'request-promise-native'
 
-import { ConsulRequest, RequestType } from './types'
+import { KVRequest, RequestType } from './types'
 
 import {
     cleanQueryParams,
     deepMerge,
     removeLeadingTrailingSlash,
     requestToPath,
-} from './utils'
+} from '../utils'
 
 import {
-    CONSUL_ADDRESS,
     CONSUL_HOST_NAME,
     CONSUL_INDEX_HEADER,
     CONSUL_TOKEN_HEADER,
-    DEFAULT_HOST,
-} from './constants'
+    DEFAULT_ADDRESS,
+} from '../constants'
 
 const request = rpn.defaults({
     json: true,
@@ -24,13 +23,11 @@ const request = rpn.defaults({
     resolveWithFullResponse: true,
 })
 
-const defaultAddress: string = process.env[CONSUL_ADDRESS] || DEFAULT_HOST
-
 interface IHeaderMap {
     [key: string]: string | number | undefined
 }
 
-function headersForRequest(req: ConsulRequest): IHeaderMap {
+function headersForRequest(req: KVRequest): IHeaderMap {
     const headers: IHeaderMap = {
         host: CONSUL_HOST_NAME,
     }
@@ -52,10 +49,10 @@ export class ConsulClient {
         this.destination =
             dest !== undefined ?
                 removeLeadingTrailingSlash(dest) :
-                removeLeadingTrailingSlash(defaultAddress)
+                removeLeadingTrailingSlash(DEFAULT_ADDRESS)
     }
 
-    public send(req: ConsulRequest, options: CoreOptions = {}): Promise<RequestResponse> {
+    public send(req: KVRequest, options: CoreOptions = {}): Promise<RequestResponse> {
         switch (req.type) {
             case RequestType.GetRequest:
                 return request(
@@ -101,7 +98,7 @@ export class ConsulClient {
         }
     }
 
-    private uriForRequest(req: ConsulRequest): string {
+    private uriForRequest(req: KVRequest): string {
         return `${this.destination}/${requestToPath(req)}`
     }
 }
