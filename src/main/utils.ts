@@ -1,4 +1,4 @@
-import { CONSUL_KV_DC } from './constants'
+import { CONSUL_DC } from './constants'
 import { IKVRequest, IQueryMap } from './kv-store/types'
 
 /**
@@ -37,7 +37,7 @@ export function splitQueryMap(raw: string): IQueryMap {
 export function cleanQueryParams(raw: IQueryMap): IQueryMap {
     const cleaned: IQueryMap = {}
 
-    raw.dc = raw.dc || process.env[CONSUL_KV_DC]
+    raw.dc = raw.dc || process.env[CONSUL_DC]
 
     for (const key in raw) {
         if (raw.hasOwnProperty(key)) {

@@ -2,7 +2,7 @@
 
 A client for Hashicorp Consul written in TypeScript.
 
-This client currently only supports the [Consul KV API](https://www.consul.io/api/kv.html).
+This library currently has clients to support the [Consul KV API](https://www.consul.io/api/kv.html) and the [Consul Catalog API](https://www.consul.io/api/catalog.html).
 
 ## Install
 
@@ -87,6 +87,41 @@ kvStore.get({ path: 'key' }, { headers: { ... } })
 The options given to the KvStore constructor are used on every request. Options given to a method are only used for that request. Options passed to a request method are deep merged with the instance options before performing the request.
 
 Available [Options](https://github.com/request/request#requestoptions-callback)
+
+## Catalog
+
+The Catalog API allows you to discover other assets registered with your Consul instance. This is useful for service discovery.
+
+```typescript
+import { Catalog } from '@creditkarma/consul-client'
+
+// Instantiate Catalog with location of Consul, default is localhost:8500
+const catalog: Catalog = new Catalog('http://localhost:8500')
+```
+
+### API Overview
+
+```typescript
+// List all nodes registered with Consul
+catalog.listNodes().then((res: Array<INodeDescription>) => {
+    // Do something
+})
+
+// List all services registered with Consul
+catalog.listServices().then((res: IServiceMap) => {
+    // Do something
+})
+
+// List all nodes registered with a given service
+catalog.listNodesForService('service-name').then((res: IServiceMap) => {
+    // Do something
+})
+
+// Get the registered address for a given service
+catalog.resolveAddress('service-name').then((res: string) => {
+    // Do something
+})
+```
 
 ## Contributing
 
