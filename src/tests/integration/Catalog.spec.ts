@@ -19,21 +19,18 @@ describe('KvStore', () => {
                 Address: '127.0.0.1',
             },
         }).then((success: boolean) => {
-            console.log('register: ', success)
             expect(success).to.equal(true)
         })
     })
 
     it('should list available services', async () => {
         return client.listServices().then((services: any) => {
-            console.log('services: ', services)
             expect(services).to.equal({ 'consul': [], 'my-thing': [] })
         })
     })
 
     it('should resolve address for given service', async () => {
         return client.resolveAddress('my-thing').then((address: string) => {
-            console.log('address: ', address)
             expect(address).to.equal('127.0.0.1')
         })
     })
