@@ -3,6 +3,7 @@ import { CoreOptions, Response } from 'request'
 import { DEFAULT_ADDRESS } from '../constants'
 import { IQueryMap } from '../kv-store/types'
 import { splitQueryMap } from '../utils'
+import { deepMerge } from '../utils'
 import { ConsulClient } from './ConsulClient'
 import {
     CatalogRequestType,
@@ -15,96 +16,126 @@ import {
 export class Catalog {
     private client: ConsulClient
     private consulAddress: string
-    // private baseOptions: CoreOptions
+    private baseOptions: CoreOptions
 
     constructor(consulAddress: string = DEFAULT_ADDRESS, baseOptions: CoreOptions = {}) {
         this.consulAddress = consulAddress
-        // this.baseOptions = baseOptions
+        this.baseOptions = baseOptions
         this.client = new ConsulClient(this.consulAddress)
     }
 
-    public registerEntity(service: IRegisterEntityPayload, requestOptions: CoreOptions = {}): Promise<boolean> {
-        return this.client.send({
-            type: CatalogRequestType.RegisterEntityRequest,
-            apiVersion: 'v1',
-            section: 'catalog',
-            paylaod: service,
-        }).then((res: Response) => {
-            switch (res.statusCode) {
-                case 200:
-                    return Promise.resolve(res.body)
+    public registerEntity(
+        service: IRegisterEntityPayload,
+        requestOptions: CoreOptions = {},
+    ): Promise<boolean> {
+        const extendedOptions = deepMerge(this.baseOptions, requestOptions)
+        return this.client
+            .send(
+                {
+                    type: CatalogRequestType.RegisterEntityRequest,
+                    apiVersion: 'v1',
+                    section: 'catalog',
+                    paylaod: service,
+                },
+                extendedOptions,
+            )
+            .then((res: Response) => {
+                switch (res.statusCode) {
+                    case 200:
+                        return Promise.resolve(res.body)
 
-                default:
-                    return Promise.reject(new Error(res.statusMessage))
-            }
-        })
+                    default:
+                        return Promise.reject(new Error(res.statusMessage))
+                }
+            })
     }
 
-    public listNodes(dc?: string): Promise<Array<INodeDescription>> {
-        return this.client.send({
-            type: CatalogRequestType.ListNodesRequest,
-            apiVersion: 'v1',
-            section: 'catalog',
-            dc,
-        }).then((res: Response) => {
-            switch (res.statusCode) {
-                case 200:
-                    return Promise.resolve(res.body)
+    public listNodes(requestOptions: CoreOptions = {}): Promise<Array<INodeDescription>> {
+        const extendedOptions = deepMerge(this.baseOptions, requestOptions)
+        return this.client
+            .send(
+                {
+                    type: CatalogRequestType.ListNodesRequest,
+                    apiVersion: 'v1',
+                    section: 'catalog',
+                },
+                extendedOptions,
+            )
+            .then((res: Response) => {
+                switch (res.statusCode) {
+                    case 200:
+                        return Promise.resolve(res.body)
 
-                default:
-                    return Promise.reject(new Error(res.statusMessage))
-            }
-        })
+                    default:
+                        return Promise.reject(new Error(res.statusMessage))
+                }
+            })
     }
 
-    public listServices(dc?: string): Promise<IServiceMap> {
-        return this.client.send({
-            type: CatalogRequestType.ListServicesRequest,
-            apiVersion: 'v1',
-            section: 'catalog',
-            dc,
-        }).then((res: Response) => {
-            switch (res.statusCode) {
-                case 200:
-                    return Promise.resolve(res.body)
+    public listServices(requestOptions: CoreOptions = {}): Promise<IServiceMap> {
+        const extendedOptions = deepMerge(this.baseOptions, requestOptions)
+        return this.client
+            .send(
+                {
+                    type: CatalogRequestType.ListServicesRequest,
+                    apiVersion: 'v1',
+                    section: 'catalog',
+                },
+                extendedOptions,
+            )
+            .then((res: Response) => {
+                switch (res.statusCode) {
+                    case 200:
+                        return Promise.resolve(res.body)
 
-                default:
-                    return Promise.reject(new Error(res.statusMessage))
-            }
-        })
+                    default:
+                        return Promise.reject(new Error(res.statusMessage))
+                }
+            })
     }
 
-    public listNodesForService(serviceName: string, dc?: string): Promise<Array<IServiceDescription>> {
+    public listNodesForService(
+        serviceName: string,
+        requestOptions: CoreOptions = {},
+    ): Promise<Array<IServiceDescription>> {
+        const extendedOptions = deepMerge(this.baseOptions, requestOptions)
         const queryMap: IQueryMap = splitQueryMap(serviceName)
 
-        return this.client.send({
-            type: CatalogRequestType.ListServiceNodesRequest,
-            apiVersion: 'v1',
-            section: 'catalog',
-            serviceName,
-            dc: queryMap.dc,
-            service: queryMap.service,
-            tag: queryMap.tag,
-            near: queryMap.near,
-            'node-meta': queryMap['node-meta'],
-        }).then((res: Response) => {
-            switch (res.statusCode) {
-                case 200:
-                    return Promise.resolve(res.body)
+        return this.client
+            .send(
+                {
+                    type: CatalogRequestType.ListServiceNodesRequest,
+                    apiVersion: 'v1',
+                    section: 'catalog',
+                    serviceName,
+                    dc: queryMap.dc,
+                    service: queryMap.service,
+                    tag: queryMap.tag,
+                    near: queryMap.near,
+                    'node-meta': queryMap['node-meta'],
+                },
+                extendedOptions,
+            )
+            .then((res: Response) => {
+                switch (res.statusCode) {
+                    case 200:
+                        return Promise.resolve(res.body)
 
-                default:
-                    return Promise.reject(new Error(res.statusMessage))
-            }
-        })
+                    default:
+                        return Promise.reject(new Error(res.statusMessage))
+                }
+            })
     }
 
-    public resolveAddress(serviceName: string): Promise<string> {
-        return this.listNodesForService(serviceName).then((res: Array<IServiceDescription>) => {
-            if (res.length > 0) {
-                return res[0].ServiceAddress || res[0].Address
-            } else {
-                throw new Error(`No service found with name[${serviceName}]`)
-            }
-        })
+    public resolveAddress(serviceName: string, requestOptions: CoreOptions = {}): Promise<string> {
+        return this.listNodesForService(serviceName, requestOptions).then(
+            (res: Array<IServiceDescription>) => {
+                if (res.length > 0) {
+                    return res[0].ServiceAddress || res[0].Address
+                } else {
+                    throw new Error(`No service found with name[${serviceName}]`)
+                }
+            },
+        )
     }
 }
