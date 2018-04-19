@@ -132,7 +132,8 @@ export class Catalog {
             (res: Array<IServiceDescription>) => {
                 if (res.length > 0) {
                     const address: string = res[0].ServiceAddress || res[0].Address
-                    return `${address}:${res[0].ServicePort}`
+                    const port: number = res[0].ServicePort || 80
+                    return `${address}:${port}`
                 } else {
                     throw new Error(`No service found with name[${serviceName}]`)
                 }
