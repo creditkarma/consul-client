@@ -17,6 +17,7 @@ describe('KvStore', () => {
             Service: {
                 Service: 'my-thing',
                 Address: '127.0.0.1',
+                Port: 8080,
             },
         }).then((success: boolean) => {
             expect(success).to.equal(true)
@@ -31,7 +32,7 @@ describe('KvStore', () => {
 
     it('should resolve address for given service', async () => {
         return client.resolveAddress('my-thing').then((address: string) => {
-            expect(address).to.equal('127.0.0.1')
+            expect(address).to.equal('127.0.0.1:8080')
         })
     })
 })

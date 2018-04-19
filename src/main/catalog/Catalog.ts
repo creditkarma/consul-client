@@ -131,7 +131,8 @@ export class Catalog {
         return this.listNodesForService(serviceName, requestOptions).then(
             (res: Array<IServiceDescription>) => {
                 if (res.length > 0) {
-                    return res[0].ServiceAddress || res[0].Address
+                    const address: string = res[0].ServiceAddress || res[0].Address
+                    return `${address}:${res[0].ServicePort}`
                 } else {
                     throw new Error(`No service found with name[${serviceName}]`)
                 }
