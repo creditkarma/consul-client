@@ -6,6 +6,7 @@ import { CatalogRequest, CatalogRequestType } from './types'
 import {
     cleanQueryParams,
     deepMerge,
+    ensureProtocol,
     removeLeadingTrailingSlash,
 } from '../utils'
 
@@ -39,6 +40,8 @@ export class ConsulClient {
             dest !== undefined ?
                 removeLeadingTrailingSlash(dest) :
                 removeLeadingTrailingSlash(DEFAULT_ADDRESS)
+
+        this.destination = ensureProtocol(this.destination)
     }
 
     public send(req: CatalogRequest, options: CoreOptions = {}): Promise<RequestResponse> {

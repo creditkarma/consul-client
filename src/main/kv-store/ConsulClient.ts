@@ -6,6 +6,7 @@ import { KVRequest, RequestType } from './types'
 import {
     cleanQueryParams,
     deepMerge,
+    ensureProtocol,
     removeLeadingTrailingSlash,
     requestToPath,
 } from '../utils'
@@ -50,6 +51,8 @@ export class ConsulClient {
             dest !== undefined ?
                 removeLeadingTrailingSlash(dest) :
                 removeLeadingTrailingSlash(DEFAULT_ADDRESS)
+
+        this.destination = ensureProtocol(this.destination)
     }
 
     public send(req: KVRequest, options: CoreOptions = {}): Promise<RequestResponse> {

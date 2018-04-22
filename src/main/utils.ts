@@ -1,3 +1,4 @@
+import * as url from 'url'
 import { CONSUL_DC } from './constants'
 import { IKVRequest, IQueryMap } from './kv-store/types'
 
@@ -16,6 +17,13 @@ export function removeLeadingTrailingSlash(str: string): string {
     } else {
         return tmp
     }
+}
+
+export function ensureProtocol(urlVal: string): string {
+    const protocols = ['http:', 'https:']
+    const parsedUrl: url.Url = url.parse(urlVal)
+    const hasProto = protocols.indexOf(parsedUrl.protocol || '') >= 0
+    return hasProto ? urlVal : 'http://' + urlVal
 }
 
 export function splitQueryMap(raw: string): IQueryMap {

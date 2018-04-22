@@ -142,4 +142,13 @@ describe('KvStore', () => {
             })
         })
     })
+
+    describe('write client without protocol', () => {
+        const shortClient = new KvStore('127.0.0.1:8500')
+        it('should write a string to consul', async () => {
+            return shortClient.set({ path: 'str' }, mockStr).then((val: any) => {
+                expect(val).to.equal(true)
+            }).then(() => client.delete({ path: 'str' }))
+        })
+    })
 })
