@@ -128,7 +128,7 @@ describe('Utils', () => {
         })
     })
 
-    describe.only('ensureProtocol', () => {
+    describe('ensureProtocol', () => {
         it('should return existing url if it has a protocol', async () => {
             const url = 'http://localhost:8000'
             expect(Utils.ensureProtocol(url)).to.equal(url)

@@ -8,12 +8,13 @@
     "dist/main"
   ],
   "keywords": [
-    "TypeScript",
-    "Hashicorp",
-    "Consul"
+    "typescript",
+    "hashicorp",
+    "consul"
   ],
   "scripts": {
     "clean": "rimraf dist/",
+    "clean-all": "npm run clean && rimraf node_modules/ package-lock.json",
     "lint": "tslint --fix './src/**/*.ts'",
     "docker": "docker-compose up consul &",
     "docker:kill": "docker-compose kill consul",
