@@ -10,7 +10,7 @@ import { DEFAULT_ADDRESS } from '../constants'
 
 import { decodeBase64, deepMerge } from '../utils'
 
-import { Observer } from '../Observer'
+import { Observer, ValueCallback } from '../Observer'
 
 import * as logger from '../logger'
 
@@ -66,42 +66,47 @@ export class KvStore {
     }
 
     public ignore(key: IKey): void {
-        this.watchMap.delete(key.path)
+        const observer: Observer<any> | undefined = this.watchMap.get(key.path)
+        if (observer !== undefined) {
+            observer.destroy()
+            this.watchMap.delete(key.path)
+        }
     }
 
     public watch<T>(key: IKey, requestOptions: CoreOptions = {}): Observer<T> {
         const extendedOptions = deepMerge(this.baseOptions, requestOptions)
-        const observer: Observer<T> = new Observer()
-        this.watchMap.set(key.path, observer)
+        const observer = new Observer((sink: ValueCallback<T>): void => {
+            const _watch = (index?: string) => {
+                this.client.send(
+                    getRequest({ key, index }),
+                    extendedOptions,
+                ).then((res: RequestResponse) => {
+                    if (this.watchMap.has(key.path)) {
+                        switch (res.statusCode) {
+                            case 200:
+                                const metadata: Array<IConsulMetadata> = res.body
+                                if (sink(decodeBase64(metadata[0].Value) as T)) {
+                                    _watch(res.headers['x-consul-index'] as string)
+                                }
+                                break
 
-        const _watch = (index?: string) => {
-            this.client.send(
-                getRequest({ key, index }),
-                extendedOptions,
-            ).then((res: RequestResponse) => {
-                if (this.watchMap.has(key.path)) {
-                    switch (res.statusCode) {
-                        case 200:
-                            const metadata: Array<IConsulMetadata> = res.body
-                            observer.update(decodeBase64(metadata[0].Value) as T)
-                            _watch(res.headers['x-consul-index'] as string)
-                            break
+                            case 404:
+                                logger.error(`Unable to find value for key[${key.path}]`)
+                                break
 
-                        case 404:
-                            logger.error(`Unable to find value for key[${key.path}]`)
-                            break
-
-                        default:
-                            logger.error(`Error retrieving key[${key.path}]: ${res.statusMessage}: ${res.body}`)
-                            break
+                            default:
+                                logger.error(`Error retrieving key[${key.path}]: ${res.statusMessage}: ${res.body}`)
+                                break
+                        }
                     }
-                }
-            })
-        }
+                })
+            }
 
-        // Start watching
-        _watch()
+            // Start watching
+            _watch()
+        })
 
+        this.watchMap.set(key.path, observer)
         return observer
     }
 
