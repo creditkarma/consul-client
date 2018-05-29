@@ -3,10 +3,17 @@ export type ValueSink<T> = (value: T) => boolean
 export type UpdateFunction<T> = (sink: ValueSink<T>) => void
 
 export class Observer<T> {
+    public static create<T>(value: T): Observer<T> {
+        return new Observer(() => {
+            // Nothing to see here.
+        }, value)
+    }
+
     private _isActive: boolean
     private _value: T | null
     private _previous: T | null
     private _listeners: Array<ValueCallback<T>> = []
+
     constructor(updater: UpdateFunction<T>, value?: T) {
         this._value = value || null
         this._previous = null
