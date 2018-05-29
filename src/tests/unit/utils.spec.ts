@@ -133,6 +133,7 @@ describe('Utils', () => {
             const url = 'http://localhost:8000'
             expect(Utils.ensureProtocol(url)).to.equal(url)
         })
+
         it('should add protocol if it is missing', async () => {
             const url = 'localhost:8000'
             expect(Utils.ensureProtocol(url)).to.equal('http://' + url)
