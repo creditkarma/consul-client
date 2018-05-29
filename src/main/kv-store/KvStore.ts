@@ -10,7 +10,7 @@ import { DEFAULT_ADDRESS } from '../constants'
 
 import { decodeBase64, deepMerge } from '../utils'
 
-import { Observer, ValueCallback } from '../Observer'
+import { Observer, ValueSink } from '../Observer'
 
 import * as logger from '../logger'
 
@@ -75,7 +75,7 @@ export class KvStore {
 
     public watch<T>(key: IKey, requestOptions: CoreOptions = {}): Observer<T> {
         const extendedOptions = deepMerge(this.baseOptions, requestOptions)
-        const observer = new Observer((sink: ValueCallback<T>): void => {
+        const observer = new Observer((sink: ValueSink<T>): void => {
             const _watch = (index?: string) => {
                 this.client.send(
                     getRequest({ key, index }),
