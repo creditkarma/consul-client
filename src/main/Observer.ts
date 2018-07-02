@@ -24,6 +24,7 @@ export class Observer<T> {
     }
 
     public destroy(): void {
+        this._value = null
         this._isActive = false
         this._listeners = []
     }
@@ -37,7 +38,14 @@ export class Observer<T> {
     }
 
     public onValue(cb: ValueCallback<T>): void {
-        this._listeners.push(cb)
+        if (this._isActive) {
+            this._listeners.push(cb)
+            if (this._value !== null) {
+                setTimeout(() => {
+                    cb(this._value!)
+                }, 0)
+            }
+        }
     }
 
     private update(value: T): boolean {
