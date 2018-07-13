@@ -18,8 +18,7 @@ export const DEFAULT_GET_REQUEST: IConsulGetRequest = {
 function merge<T>(...objs: Array<any>): T {
     const newObj: any = {}
 
-    for (let i = 0; i < objs.length; i++) {
-        const nextObj = objs[i]
+    for (const nextObj of objs) {
         for (const key in nextObj) {
             if (nextObj.hasOwnProperty(key)) {
                 newObj[key] = nextObj[key]
