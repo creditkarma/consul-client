@@ -15,8 +15,23 @@ export const DEFAULT_GET_REQUEST: IConsulGetRequest = {
     token: '',
 }
 
+function merge<T>(...objs: Array<any>): T {
+    const newObj: any = {}
+
+    for (let i = 0; i < objs.length; i++) {
+        const nextObj = objs[i]
+        for (const key in nextObj) {
+            if (nextObj.hasOwnProperty(key)) {
+                newObj[key] = nextObj[key]
+            }
+        }
+    }
+
+    return newObj
+}
+
 export function getRequest(options: Partial<IConsulGetRequest>): IConsulGetRequest {
-    return Object.assign(DEFAULT_GET_REQUEST, options)
+    return merge(DEFAULT_GET_REQUEST, options)
 }
 
 export const DEFAULT_UPDATE_REQUEST: IConsulUpdateRequest = {
@@ -30,7 +45,7 @@ export const DEFAULT_UPDATE_REQUEST: IConsulUpdateRequest = {
 }
 
 export function updateRequest(options: Partial<IConsulUpdateRequest>): IConsulUpdateRequest {
-    return Object.assign(DEFAULT_UPDATE_REQUEST, options)
+    return merge(DEFAULT_UPDATE_REQUEST, options)
 }
 
 export const DEFAULT_DELETE_REQUEST: IConsulDeleteRequest = {
@@ -43,5 +58,5 @@ export const DEFAULT_DELETE_REQUEST: IConsulDeleteRequest = {
 }
 
 export function deleteRequest(options: Partial<IConsulDeleteRequest>): IConsulDeleteRequest {
-    return Object.assign(DEFAULT_DELETE_REQUEST, options)
+    return merge(DEFAULT_DELETE_REQUEST, options)
 }
