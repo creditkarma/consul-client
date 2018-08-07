@@ -1,6 +1,15 @@
 import * as url from 'url'
-import { CONSUL_DC } from './constants'
-import { IKVRequest, IQueryMap } from './kv-store/types'
+
+import {
+    CONSUL_DC,
+    CONSUL_HOST_NAME,
+    CONSUL_INDEX_HEADER,
+    CONSUL_TOKEN_HEADER,
+} from './constants'
+
+import { CatalogRequest } from './catalog/types'
+import { IKVRequest, IQueryMap, KVRequest } from './kv-store/types'
+import { IHeaderMap } from './types'
 
 /**
  * Try to decode a base64 encoded string
@@ -105,4 +114,20 @@ export function deepMerge<Base, Update>(base: Base, update: Update): Base & Upda
     }
 
     return newObj as Base & Update
+}
+
+export function headersForRequest(req: KVRequest | CatalogRequest): IHeaderMap {
+    const headers: IHeaderMap = {
+        host: CONSUL_HOST_NAME,
+    }
+
+    if (req.index) {
+        headers[CONSUL_INDEX_HEADER] = parseInt(req.index, 10) + 1
+    }
+
+    if ((req as KVRequest).token) {
+        headers[CONSUL_TOKEN_HEADER] = (req as KVRequest).token
+    }
+
+    return headers
 }

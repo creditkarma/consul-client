@@ -7,31 +7,17 @@ import {
     cleanQueryParams,
     deepMerge,
     ensureProtocol,
+    headersForRequest,
     removeLeadingTrailingSlash,
 } from '../utils'
 
-import {
-    CONSUL_HOST_NAME,
-    DEFAULT_ADDRESS,
-} from '../constants'
+import { DEFAULT_ADDRESS } from '../constants'
 
 const request = rpn.defaults({
     json: true,
     simple: false,
     resolveWithFullResponse: true,
 })
-
-interface IHeaderMap {
-    [key: string]: string | number | undefined
-}
-
-function headersForRequest(): IHeaderMap {
-    const headers: IHeaderMap = {
-        host: CONSUL_HOST_NAME,
-    }
-
-    return headers
-}
 
 export class ConsulClient {
     private destination: string
@@ -52,7 +38,7 @@ export class ConsulClient {
                         uri: `${this.getPathForRequest(req)}/register`,
                         body: req.paylaod,
                         method: 'PUT',
-                        headers: headersForRequest(),
+                        headers: headersForRequest(req),
                         qs: cleanQueryParams({
                             dc: req.dc,
                             index: req.index,
@@ -65,7 +51,7 @@ export class ConsulClient {
                     deepMerge(options, {
                         uri: `${this.getPathForRequest(req)}/nodes`,
                         method: 'GET',
-                        headers: headersForRequest(),
+                        headers: headersForRequest(req),
                         qs: cleanQueryParams({
                             dc: req.dc,
                             index: req.index,
@@ -78,7 +64,7 @@ export class ConsulClient {
                     deepMerge(options, {
                         uri: `${this.getPathForRequest(req)}/services`,
                         method: 'GET',
-                        headers: headersForRequest(),
+                        headers: headersForRequest(req),
                         qs: cleanQueryParams({
                             dc: req.dc,
                             index: req.index,
@@ -91,7 +77,7 @@ export class ConsulClient {
                     deepMerge(options, {
                         uri: `${this.getPathForRequest(req)}/service/${req.serviceName}`,
                         method: 'GET',
-                        headers: headersForRequest(),
+                        headers: headersForRequest(req),
                         qs: cleanQueryParams({
                             dc: req.dc,
                             index: req.index,
