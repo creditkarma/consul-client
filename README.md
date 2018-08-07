@@ -121,6 +121,11 @@ catalog.listNodesForService('service-name').then((res: IServiceMap) => {
 catalog.resolveAddress('service-name').then((res: string) => {
     // Do something
 })
+
+// Watch for runtime changes to a service address
+catalog.watchAddress('service-name').onValue((address: string) => {
+    // Do something
+})
 ```
 
 ## Contributing
