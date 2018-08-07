@@ -39,7 +39,6 @@ describe('KvStore', () => {
     it('should watch for changes to a service address', (done) => {
         let count: number = 0
         client.watchAddress('my-thing').onValue((next: string) => {
-            console.log('next: ', next)
             if (count ===  0) {
                 expect(next).to.equal('127.0.0.1:8080')
 
