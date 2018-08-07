@@ -7,42 +7,18 @@ import {
     cleanQueryParams,
     deepMerge,
     ensureProtocol,
+    headersForRequest,
     removeLeadingTrailingSlash,
     requestToPath,
 } from '../utils'
 
-import {
-    CONSUL_HOST_NAME,
-    CONSUL_INDEX_HEADER,
-    CONSUL_TOKEN_HEADER,
-    DEFAULT_ADDRESS,
-} from '../constants'
+import { DEFAULT_ADDRESS } from '../constants'
 
 const request = rpn.defaults({
     json: true,
     simple: false,
     resolveWithFullResponse: true,
 })
-
-interface IHeaderMap {
-    [key: string]: string | number | undefined
-}
-
-function headersForRequest(req: KVRequest): IHeaderMap {
-    const headers: IHeaderMap = {
-        host: CONSUL_HOST_NAME,
-    }
-
-    if (req.index) {
-        headers[CONSUL_INDEX_HEADER] = req.index + 1
-    }
-
-    if (req.token) {
-        headers[CONSUL_TOKEN_HEADER] = req.token
-    }
-
-    return headers
-}
 
 export class ConsulClient {
     private destination: string
