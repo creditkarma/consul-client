@@ -52,7 +52,7 @@ export const DEFAULT_DELETE_REQUEST: IConsulDeleteRequest = {
     apiVersion: 'v1',
     section: 'kv',
     subsection: undefined,
-    index: '0',
+    index: 0,
     key: { path: '' },
 }
 

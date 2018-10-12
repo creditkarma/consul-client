@@ -1,5 +1,6 @@
 export type ValueCallback<T> = (value: T) => void
-export type ValueSink<T> = (value: T) => boolean
+export type ErrorCallback = (err: Error) => void
+export type ValueSink<T> = (err: Error | undefined, value?: T) => boolean
 export type UpdateFunction<T> = (sink: ValueSink<T>) => void
 
 export class Observer<T> {
@@ -13,13 +14,22 @@ export class Observer<T> {
     private _value: T | null
     private _previous: T | null
     private _listeners: Array<ValueCallback<T>> = []
+    private _errorListeners: Array<ErrorCallback> = []
 
     constructor(updater: UpdateFunction<T>, value?: T) {
         this._value = value || null
         this._previous = null
         this._isActive = true
-        updater((newValue: T): boolean => {
-            return this.update(newValue)
+        updater((err: Error | undefined, newValue?: T): boolean => {
+            if (err !== undefined) {
+                return this.updateErrors(err)
+
+            } else if (newValue !== undefined) {
+                return this.update(newValue)
+
+            } else {
+                return false
+            }
         })
     }
 
@@ -48,12 +58,28 @@ export class Observer<T> {
         }
     }
 
+    public onError(cb: ErrorCallback): void {
+        if (this._isActive) {
+            this._errorListeners.push(cb)
+        }
+    }
+
     private update(value: T): boolean {
         if (this._isActive && value !== this._value) {
             this._previous = this._value
             this._value = value
             this._listeners.forEach((next: ValueCallback<T>) => {
                 next(value)
+            })
+        }
+
+        return this._isActive
+    }
+
+    private updateErrors(err: Error): boolean {
+        if (this._isActive) {
+            this._errorListeners.forEach((next: ErrorCallback) => {
+                next(err)
             })
         }
 

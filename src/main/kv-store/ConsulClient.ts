@@ -6,13 +6,11 @@ import { KVRequest, RequestType } from './types'
 import {
     cleanQueryParams,
     deepMerge,
-    ensureProtocol,
     headersForRequest,
-    removeLeadingTrailingSlash,
     requestToPath,
 } from '../utils'
 
-import { DEFAULT_ADDRESS } from '../constants'
+import { BaseClient } from '../BaseClient'
 
 const request = rpn.defaults({
     json: true,
@@ -20,23 +18,13 @@ const request = rpn.defaults({
     resolveWithFullResponse: true,
 })
 
-export class ConsulClient {
-    private destination: string
-    constructor(dest?: string) {
-        this.destination =
-            dest !== undefined ?
-                removeLeadingTrailingSlash(dest) :
-                removeLeadingTrailingSlash(DEFAULT_ADDRESS)
-
-        this.destination = ensureProtocol(this.destination)
-    }
-
-    public send(req: KVRequest, options: CoreOptions = {}): Promise<RequestResponse> {
+export class ConsulClient extends BaseClient<KVRequest> {
+    protected processRequest(req: KVRequest, options: CoreOptions): Promise<RequestResponse> {
         switch (req.type) {
             case RequestType.GetRequest:
                 return request(
                     deepMerge(options, {
-                        uri: this.uriForRequest(req),
+                        uri: this.getPathForRequest(req),
                         method: 'GET',
                         headers: headersForRequest(req),
                         qs: cleanQueryParams({
@@ -49,7 +37,7 @@ export class ConsulClient {
             case RequestType.UpdateRequest:
                 return request(
                     deepMerge(options, {
-                        uri: this.uriForRequest(req),
+                        uri: this.getPathForRequest(req),
                         body: req.value,
                         method: 'PUT',
                         headers: headersForRequest(req),
@@ -62,7 +50,7 @@ export class ConsulClient {
             case RequestType.DeleteRequest:
                 return request(
                     deepMerge(options, {
-                        uri: this.uriForRequest(req),
+                        uri: this.getPathForRequest(req),
                         method: 'DELETE',
                         headers: headersForRequest(req),
                         qs: cleanQueryParams({
@@ -77,7 +65,7 @@ export class ConsulClient {
         }
     }
 
-    private uriForRequest(req: KVRequest): string {
-        return `${this.destination}/${requestToPath(req)}`
+    protected getPathForRequest(req: KVRequest): string {
+        return `${this.currentDestination}/${requestToPath(req)}`
     }
 }

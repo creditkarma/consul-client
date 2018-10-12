@@ -1,6 +1,6 @@
 import { expect } from 'code'
 import * as Lab from 'lab'
-import { IQueryMap } from '../../main/kv-store/types'
+import { IQueryMap } from '../../main/types'
 import * as Utils from '../../main/utils'
 
 export const lab = Lab.script()

@@ -4,10 +4,6 @@ export const enum RequestType {
     DeleteRequest = 'DeleteRequest',
 }
 
-export interface IQueryMap {
-    [key: string]: string | undefined
-}
-
 export interface IKey {
     path: string
     dc?: string
@@ -18,7 +14,7 @@ export interface IKVRequest {
     apiVersion: 'v1'
     key: IKey
     token?: string
-    index?: string
+    index?: number
     subsection?: string
     section?: string
 }

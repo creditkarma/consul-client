@@ -6,9 +6,7 @@ import { deleteRequest, getRequest, updateRequest } from './request'
 
 import { IConsulMetadata, IKey } from './types'
 
-import { DEFAULT_ADDRESS } from '../constants'
-
-import { decodeBase64, deepMerge } from '../utils'
+import { decodeBase64, deepMerge, defaultAddresses } from '../utils'
 
 import { Observer, ValueSink } from '../Observer'
 
@@ -19,15 +17,21 @@ import * as logger from '../logger'
  */
 export class KvStore {
     private client: ConsulClient
-    private consulAddress: string
+    private consulAddresses: Array<string>
     private baseOptions: CoreOptions
     private watchMap: Map<string, Observer<any>>
+    private maxRetries: number
 
-    constructor(consulAddress: string = DEFAULT_ADDRESS, baseOptions: CoreOptions = {}) {
-        this.consulAddress = consulAddress
+    constructor(
+        consulAddresses: Array<string> = defaultAddresses(),
+        baseOptions: CoreOptions = {},
+        maxRetries: number = 5,
+    ) {
+        this.consulAddresses = consulAddresses
         this.baseOptions = baseOptions
-        this.client = new ConsulClient(this.consulAddress)
+        this.client = new ConsulClient(this.consulAddresses)
         this.watchMap = new Map()
+        this.maxRetries = maxRetries
     }
 
     /**
@@ -75,8 +79,9 @@ export class KvStore {
 
     public watch<T>(key: IKey, requestOptions: CoreOptions = {}): Observer<T> {
         const extendedOptions = deepMerge(this.baseOptions, requestOptions)
+        let numRetries: number = 0
         const observer = new Observer((sink: ValueSink<T>): void => {
-            const _watch = (index?: string) => {
+            const _watch = (index?: number) => {
                 this.client.send(
                     getRequest({ key, index }),
                     extendedOptions,
@@ -85,19 +90,40 @@ export class KvStore {
                         switch (res.statusCode) {
                             case 200:
                                 const metadata: Array<IConsulMetadata> = res.body
-                                if (sink(decodeBase64(metadata[0].Value) as T)) {
-                                    _watch(res.headers['x-consul-index'] as string)
+                                const modifyIndex: number = metadata[0].ModifyIndex
+                                numRetries = 0
+                                if (modifyIndex !== index) {
+                                    if (sink(undefined, decodeBase64(metadata[0].Value) as T)) {
+                                        _watch(modifyIndex)
+                                    }
+                                } else {
+                                    setTimeout(() => _watch(index), 5000)
                                 }
+
                                 break
 
                             case 404:
                                 logger.error(`Unable to find value for key[${key.path}]`)
+                                if (numRetries < this.maxRetries) {
+                                    setTimeout(_watch, 5000)
+                                    numRetries += 1
+                                }
                                 break
 
                             default:
                                 logger.error(`Error retrieving key[${key.path}]: ${res.statusMessage}: ${res.body}`)
+                                if (numRetries < this.maxRetries) {
+                                    setTimeout(_watch, 5000)
+                                    numRetries += 1
+                                }
                                 break
                         }
+                    }
+                }).catch((err: any) => {
+                    logger.error(`Error retrieving key[${key.path}]: ${err.message}`, err)
+                    if (numRetries < this.maxRetries) {
+                        setTimeout(_watch, 5000)
+                        numRetries += 1
                     }
                 })
             }

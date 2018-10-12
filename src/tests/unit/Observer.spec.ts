@@ -33,7 +33,7 @@ describe('Observer', () => {
             const expected: string = 'foo'
             const ob: Observer<string> = new Observer((sink) => {
                 setTimeout(() => {
-                    sink(expected)
+                    sink(undefined, expected)
                 })
             })
 

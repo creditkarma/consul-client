@@ -1,15 +1,30 @@
 import * as url from 'url'
 
 import {
+    CONSUL_ADDRESS,
     CONSUL_DC,
     CONSUL_HOST_NAME,
     CONSUL_INDEX_HEADER,
     CONSUL_TOKEN_HEADER,
+    DEFAULT_HOST,
 } from './constants'
 
 import { CatalogRequest } from './catalog/types'
-import { IKVRequest, IQueryMap, KVRequest } from './kv-store/types'
-import { IHeaderMap } from './types'
+import { IKVRequest, KVRequest } from './kv-store/types'
+import { IHeaderMap, IQueryMap } from './types'
+
+export function defaultAddresses(): Array<string> {
+    const envAddress: string | undefined = process.env[CONSUL_ADDRESS]
+    if (envAddress !== undefined) {
+        return envAddress.split(',').map((next: string) => {
+            return next.trim()
+        }).filter((next: string) => {
+            return next !== ''
+        })
+    } else {
+        return [ DEFAULT_HOST ]
+    }
+}
 
 /**
  * Try to decode a base64 encoded string
@@ -105,8 +120,10 @@ export function deepMerge<Base, Update>(base: Base, update: Update): Base & Upda
             const updateValue: any = (update as any)[key]
             if (isObject(baseValue) && isObject(updateValue)) {
                 newObj[key] = deepMerge(baseValue, updateValue)
+
             } else if (updateValue !== undefined) {
                 newObj[key] = updateValue
+
             } else {
                 newObj[key] = baseValue
             }
@@ -121,8 +138,8 @@ export function headersForRequest(req: KVRequest | CatalogRequest): IHeaderMap {
         host: CONSUL_HOST_NAME,
     }
 
-    if (req.index) {
-        headers[CONSUL_INDEX_HEADER] = parseInt(req.index, 10) + 1
+    if (req.index !== undefined) {
+        headers[CONSUL_INDEX_HEADER] = req.index + 1
     }
 
     if ((req as KVRequest).token) {
