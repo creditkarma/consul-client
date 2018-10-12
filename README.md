@@ -62,7 +62,7 @@ kvStore.delete({ path: 'key', dc: 'dc1' }).then((success: boolean) => {
 
 An `Observer` is the object returned from a call to `watch`.
 
-It has three public methods:
+It has five public methods:
 
 ```typescript
 const observer: Observer<string> = kvStore.watch({ path: 'key', dc: 'dc1' })
@@ -75,6 +75,12 @@ observer.onError((err: Error) => {
     // runs anytime there is an error updating the value.
     // depending on the error the library may continue watching the key.
 })
+
+observer.current() // Returns the current value
+
+observer.previous() // Returns the previous value
+
+observer.destroy() // Nulls out all internal state
 
 // Get the current value, returns null if no value
 const currentVal: string | null = observer.current()
