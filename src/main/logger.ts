@@ -14,9 +14,9 @@ export const log = (msg: string, data?: any) => {
 }
 
 export const warn = (msg: string, data?: any) => {
-    if (data !== undefined && isDebug()) {
+    if (data !== undefined) {
         console.warn(`[consul-client:warn]: ${msg}: `, data)
-    } else if (isDebug()) {
+    } else {
         console.warn(`[consul-client:warn]: ${msg}`)
     }
 }

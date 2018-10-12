@@ -1,10 +1,8 @@
 import { CoreOptions, RequestResponse, Response } from 'request'
 
-import { DEFAULT_ADDRESS } from '../constants'
-import { IQueryMap } from '../kv-store/types'
 import * as logger from '../logger'
 import { Observer, ValueSink } from '../Observer'
-import { splitQueryMap } from '../utils'
+import { defaultAddresses, splitQueryMap } from '../utils'
 import { deepMerge } from '../utils'
 import { ConsulClient } from './ConsulClient'
 import {
@@ -15,17 +13,25 @@ import {
     IServiceMap,
 } from './types'
 
+import { IQueryMap } from '../types'
+
 export class Catalog {
     private client: ConsulClient
-    private consulAddress: string
+    private consulAddresses: Array<string>
     private baseOptions: CoreOptions
     private watchMap: Map<string, Observer<string>>
+    private maxRetries: number
 
-    constructor(consulAddress: string = DEFAULT_ADDRESS, baseOptions: CoreOptions = {}) {
-        this.consulAddress = consulAddress
+    constructor(
+        consulAddresses: Array<string> = defaultAddresses(),
+        baseOptions: CoreOptions = {},
+        maxRetries: number = 5,
+    ) {
+        this.consulAddresses = consulAddresses
         this.baseOptions = baseOptions
-        this.client = new ConsulClient(this.consulAddress)
+        this.client = new ConsulClient(this.consulAddresses)
         this.watchMap = new Map()
+        this.maxRetries = maxRetries
     }
 
     public registerEntity(
@@ -156,9 +162,10 @@ export class Catalog {
     public watchAddress(serviceName: string, requestOptions: CoreOptions = {}): Observer<string> {
         const extendedOptions = deepMerge(this.baseOptions, requestOptions)
         const queryMap: IQueryMap = splitQueryMap(serviceName)
+        let numRetries: number = 0
 
         const observer = new Observer((sink: ValueSink<string>): void => {
-            const _watch = (index?: string) => {
+            const _watch = (index?: number) => {
                 this.client.send(
                     {
                         type: CatalogRequestType.ListServiceNodesRequest,
@@ -180,22 +187,45 @@ export class Catalog {
                                 const metadata: Array<IServiceDescription> = res.body
                                 const address: string = metadata[0].ServiceAddress || metadata[0].Address
                                 const port: number = metadata[0].ServicePort || 80
+                                const modifyIndex: number = metadata[0].ModifyIndex
+                                numRetries = 0
 
-                                if (sink(`${address}:${port}`)) {
-                                    _watch(res.headers['x-consul-index'] as string)
+                                if (modifyIndex !== index) {
+                                    if (sink(undefined, `${address}:${port}`)) {
+                                        _watch(modifyIndex)
+                                    }
+                                } else {
+                                    setTimeout(() => _watch(index), 5000)
                                 }
+
                                 break
 
                             case 404:
                                 logger.error(`Unable to find address for service[${serviceName}]`)
+                                if (numRetries < this.maxRetries) {
+                                    setTimeout(_watch, 5000)
+                                    numRetries += 1
+                                }
                                 break
 
                             default:
                                 logger.error(
                                     `Error retrieving address for service[${serviceName}]: ${res.statusMessage}`,
                                 )
+                                if (numRetries < this.maxRetries) {
+                                    setTimeout(_watch, 5000)
+                                    numRetries += 1
+                                } else {
+                                    sink(new Error(res.statusMessage))
+                                }
                                 break
                         }
+                    }
+                }).catch((err: any) => {
+                    logger.error(`Error retrieving address for service[${serviceName}]: ${err.message}`, err)
+                    if (numRetries < this.maxRetries) {
+                        setTimeout(_watch, 5000)
+                        numRetries += 1
                     }
                 })
             }

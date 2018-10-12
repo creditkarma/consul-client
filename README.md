@@ -123,7 +123,7 @@ catalog.resolveAddress('service-name').then((res: string) => {
 })
 
 // Watch for runtime changes to a service address
-catalog.watchAddress('service-name').onValue((address: string) => {
+catalog.watchAddress('service-name').onValue((res: string) => {
     // Do something
 })
 ```

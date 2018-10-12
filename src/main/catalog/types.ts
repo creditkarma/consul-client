@@ -8,16 +8,12 @@ export const enum CatalogRequestType {
     DeregisterEntityRequest = 'DeregisterEntityRequest',
 }
 
-export interface IQueryMap {
-    [key: string]: string | number | boolean | undefined
-}
-
 export interface ICatalogRequest {
     type: CatalogRequestType
     apiVersion: 'v1'
     section: 'catalog'
     dc?: string
-    index?: string
+    index?: number
     near?: string
     'node-meta'?: string
     tag?: string

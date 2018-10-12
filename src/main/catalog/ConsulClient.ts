@@ -6,12 +6,10 @@ import { CatalogRequest, CatalogRequestType } from './types'
 import {
     cleanQueryParams,
     deepMerge,
-    ensureProtocol,
     headersForRequest,
-    removeLeadingTrailingSlash,
 } from '../utils'
 
-import { DEFAULT_ADDRESS } from '../constants'
+import { BaseClient } from '../BaseClient'
 
 const request = rpn.defaults({
     json: true,
@@ -19,18 +17,8 @@ const request = rpn.defaults({
     resolveWithFullResponse: true,
 })
 
-export class ConsulClient {
-    private destination: string
-    constructor(dest?: string) {
-        this.destination =
-            dest !== undefined ?
-                removeLeadingTrailingSlash(dest) :
-                removeLeadingTrailingSlash(DEFAULT_ADDRESS)
-
-        this.destination = ensureProtocol(this.destination)
-    }
-
-    public send(req: CatalogRequest, options: CoreOptions = {}): Promise<RequestResponse> {
+export class ConsulClient extends BaseClient<CatalogRequest> {
+    protected processRequest(req: CatalogRequest, options: CoreOptions = {}): Promise<RequestResponse> {
         switch (req.type) {
             case CatalogRequestType.RegisterEntityRequest:
                 return request(
@@ -91,7 +79,7 @@ export class ConsulClient {
         }
     }
 
-    private getPathForRequest(req: CatalogRequest): string {
-        return `${this.destination}/${req.apiVersion}/${req.section}`
+    protected getPathForRequest(req: CatalogRequest): string {
+        return `${this.currentDestination}/${req.apiVersion}/${req.section}`
     }
 }

@@ -37,20 +37,20 @@
     "url": "https://github.com/creditkarma/consul-client"
   },
   "devDependencies": {
-    "@types/code": "^4.0.3",
+    "@types/code": "^4.0.4",
     "@types/lab": "^11.1.0",
     "@types/node": "^8.0.51",
     "code": "^4.1.0",
     "lab": "^14.3.4",
     "rimraf": "^2.6.2",
-    "tslint": "^5.9.1",
-    "typescript": "2.9.x",
-    "wait-on": "^2.1.0"
+    "tslint": "^5.11.0",
+    "typescript": "3.1.x",
+    "wait-on": "^3.1.0"
   },
   "dependencies": {
     "@types/request-promise-native": "^1.0.14",
     "@types/request": "^2.47.0",
-    "request": "^2.85.0",
+    "request": "^2.88.0",
     "request-promise-native": "^1.0.5"
   }
 }
