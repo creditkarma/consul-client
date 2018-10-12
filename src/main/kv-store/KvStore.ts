@@ -111,19 +111,23 @@ export class KvStore {
                                 break
 
                             default:
-                                logger.error(`Error retrieving key[${key.path}]: ${res.statusMessage}: ${res.body}`)
+                                logger.error(`Error retrieving key[${key.path}]: ${res.statusMessage}.`)
                                 if (numRetries < this.maxRetries) {
                                     setTimeout(_watch, 5000)
                                     numRetries += 1
+                                } else {
+                                    sink(new Error(`Error retrieving key[${key.path}]: ${res.statusMessage}.`))
                                 }
                                 break
                         }
                     }
                 }).catch((err: any) => {
-                    logger.error(`Error retrieving key[${key.path}]: ${err.message}`, err)
+                    logger.error(`Error retrieving key[${key.path}]: ${err.message}.`)
                     if (numRetries < this.maxRetries) {
                         setTimeout(_watch, 5000)
                         numRetries += 1
+                    } else {
+                        sink(new Error(`Error retrieving key[${key.path}]: ${err.message}.`))
                     }
                 })
             }

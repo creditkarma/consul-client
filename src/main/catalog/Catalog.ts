@@ -210,22 +210,28 @@ export class Catalog {
 
                             default:
                                 logger.error(
-                                    `Error retrieving address for service[${serviceName}]: ${res.statusMessage}`,
+                                    `Error retrieving address for service[${serviceName}]: ${res.statusMessage}.`,
                                 )
                                 if (numRetries < this.maxRetries) {
                                     setTimeout(_watch, 5000)
                                     numRetries += 1
                                 } else {
-                                    sink(new Error(res.statusMessage))
+                                    sink(new Error(
+                                        `Error retrieving address for service[${serviceName}]: ${res.statusMessage}.`,
+                                    ))
                                 }
                                 break
                         }
                     }
                 }).catch((err: any) => {
-                    logger.error(`Error retrieving address for service[${serviceName}]: ${err.message}`, err)
+                    logger.error(`Error retrieving address for service[${serviceName}]: ${err.message}.`)
                     if (numRetries < this.maxRetries) {
                         setTimeout(_watch, 5000)
                         numRetries += 1
+                    } else {
+                        sink(new Error(
+                            `Error retrieving address for service[${serviceName}]: ${err.message}.`,
+                        ))
                     }
                 })
             }
