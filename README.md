@@ -17,8 +17,12 @@ The K/V store provides a simple JS API for getting values in and out of Consul. 
 ```typescript
 import { KvStore, IKey, Observer } from '@creditkarma/consul-client'
 
-// Instantiate KvStore with location of Consul, default is localhost:8500
-const kvStore: KvStore = new KvStore('http://localhost:8500')
+/**
+ * Instantiate KvStore with location of Consul, default is localhost:8500.
+ *
+ * The argument is actually an array of locations in order to support fail over.
+ */
+const kvStore: KvStore = new KvStore([ 'http://localhost:8500' ])
 ```
 
 ### IKey
@@ -79,7 +83,7 @@ const previousVal: string | null = observer.previous()
 We use [Request](https://github.com/request/request) as our underlying HTTP client. As such you can pass options through to Request to customize the HTTP request for your environment. This can be done both when instantiating a new KvStore or when making a request.
 
 ```typescript
-const kvStore: KvStore = new KvStore('http://localhost:8500', { headers: { ... } })
+const kvStore: KvStore = new KvStore([ 'http://localhost:8500' ], { headers: { ... } })
 
 kvStore.get({ path: 'key' }, { headers: { ... } })
 ```
@@ -95,8 +99,12 @@ The Catalog API allows you to discover other assets registered with your Consul 
 ```typescript
 import { Catalog } from '@creditkarma/consul-client'
 
-// Instantiate Catalog with location of Consul, default is localhost:8500
-const catalog: Catalog = new Catalog('http://localhost:8500')
+/**
+ * Instantiate Catalog with location of Consul, default is localhost:8500
+ *
+ * Like KvStore the Catalog supports fail over by providing a list of addresses.
+ */
+const catalog: Catalog = new Catalog([ 'http://localhost:8500' ])
 ```
 
 ### API Overview
