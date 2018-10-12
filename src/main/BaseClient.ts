@@ -23,15 +23,20 @@ export abstract class BaseClient<ConsulRequest> implements IConsulClient<ConsulR
     }
 
     public send(req: ConsulRequest, options: CoreOptions = {}): Promise<RequestResponse> {
-        return this.processRequest(req, options).catch((err: any) => this.runRetry(req, options, err))
+        const dest: string = this.currentDestination
+        return this.processRequest(req, options).catch((err: any) => this.runRetry(req, options, dest, err))
     }
 
-    protected runRetry(req: ConsulRequest, options: CoreOptions, err: any): Promise<RequestResponse> {
+    protected runRetry(req: ConsulRequest, options: CoreOptions, dest: string, err: any): Promise<RequestResponse> {
         return new Promise((resolve, reject) => {
-            if (this.currentIndex < this.destinations.length - 1) {
+            if (this.currentIndex < this.destinations.length - 1 || dest !== this.currentDestination) {
                 logger.warn(`Request failed on host[${this.currentDestination}]. ${err.message}. Trying next host. `)
-                this.currentIndex += 1
-                this.currentDestination = this.destinations[this.currentIndex]
+
+                if (dest === this.currentDestination) {
+                    this.currentIndex += 1
+                    this.currentDestination = this.destinations[this.currentIndex]
+                }
+
                 setTimeout(() => {
                     resolve(this.send(req, options))
                 }, RETRY_INTERVAL)
