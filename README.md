@@ -71,6 +71,11 @@ observer.onValue((val: string) => {
     // runs anytime the value changes, initially fires with current value
 })
 
+observer.onError((err: Error) => {
+    // runs anytime there is an error updating the value.
+    // depending on the error the library may continue watching the key.
+})
+
 // Get the current value, returns null if no value
 const currentVal: string | null = observer.current()
 
