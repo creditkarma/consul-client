@@ -16,7 +16,7 @@ describe('KvStore', () => {
     describe('With standard config', () => {
         const client = new KvStore([ 'http://127.0.0.1:8500' ])
 
-        describe('write', () => {
+        describe('set', () => {
             it('should write a string to consul', async () => {
                 return client.set({ path: 'str' }, mockStr).then((val: any) => {
                     expect(val).to.equal(true)
@@ -42,7 +42,7 @@ describe('KvStore', () => {
             })
         })
 
-        describe('read', () => {
+        describe('get', () => {
             it('should read a string from consul', async () => {
                 client.get({ path: 'str' }).then((val: any) => {
                     expect(val).to.equal(mockStr)
@@ -101,6 +101,56 @@ describe('KvStore', () => {
 
                     count++
                 })
+            })
+
+            it('should return an observer that only updates when the new value is different', (done) => {
+                let count: number = 0
+                let updateCount: number = 0
+
+                client.watch<object>({ path: 'obj' }).onValue((val: object): void => {
+                    if (count === 0) {
+                        expect(val).to.equal(mockObj)
+
+                    } else if (count === 1) {
+                        expect(val).to.equal({ value: 'updated' })
+
+                    } else if (count === 2) {
+                        expect(val).to.equal({ value: 'again' })
+
+                    } else if (count === 3) {
+                        expect(val).to.equal({ value: 'finally' })
+                        done()
+
+                    } else {
+                        throw new Error('Nope')
+                    }
+
+                    count++
+                })
+
+                function runUpdate() {
+                    setTimeout(() => {
+                        if (updateCount === 0) {
+                            client.set({ path: 'obj' }, { value: 'updated' })
+
+                        } else if (updateCount === 1) {
+                            client.set({ path: 'obj' }, { value: 'again' })
+
+                        } else if (updateCount === 2) {
+                            client.set({ path: 'obj' }, { value: 'again' })
+
+                        } else if (updateCount === 3) {
+                            client.set({ path: 'obj' }, { value: 'finally' })
+                        }
+
+                        if (updateCount < 3) {
+                            updateCount += 1
+                            runUpdate()
+                        }
+                    }, 2000)
+                }
+
+                runUpdate()
             })
 
             it('should return an observer that performs retries for errors', (done) => {

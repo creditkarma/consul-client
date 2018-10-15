@@ -6,7 +6,7 @@ import { deleteRequest, getRequest, updateRequest } from './request'
 
 import { IConsulMetadata, IKey } from './types'
 
-import { decodeBase64, deepMerge, defaultAddresses } from '../utils'
+import * as Utils from '../utils'
 
 import { Observer, ValueSink } from '../Observer'
 
@@ -23,7 +23,7 @@ export class KvStore {
     private maxRetries: number
 
     constructor(
-        consulAddresses: Array<string> = defaultAddresses(),
+        consulAddresses: Array<string> = Utils.defaultAddresses(),
         baseOptions: CoreOptions = {},
         maxRetries: number = 5,
     ) {
@@ -50,7 +50,7 @@ export class KvStore {
      * The Value is a Base64 encoded string
      */
     public get<T>(key: IKey, requestOptions: CoreOptions = {}): Promise<T | null> {
-        const extendedOptions = deepMerge(this.baseOptions, requestOptions)
+        const extendedOptions = Utils.deepMerge(this.baseOptions, requestOptions)
         return this.client.send(
             getRequest({ key }),
             extendedOptions,
@@ -58,7 +58,7 @@ export class KvStore {
             switch (res.statusCode) {
                 case 200:
                     const metadata: Array<IConsulMetadata> = res.body
-                    return Promise.resolve(decodeBase64(metadata[0].Value) as T)
+                    return Promise.resolve(Utils.decodeBase64(metadata[0].Value) as T)
 
                 case 404:
                     return Promise.resolve(null)
@@ -78,8 +78,10 @@ export class KvStore {
     }
 
     public watch<T>(key: IKey, requestOptions: CoreOptions = {}): Observer<T> {
-        const extendedOptions = deepMerge(this.baseOptions, requestOptions)
+        const extendedOptions = Utils.deepMerge(this.baseOptions, requestOptions)
         let numRetries: number = 0
+        let currentValue: any
+
         const observer = new Observer((sink: ValueSink<T>): void => {
             const _watch = (index?: number) => {
                 this.client.send(
@@ -91,9 +93,12 @@ export class KvStore {
                             case 200:
                                 const metadata: Array<IConsulMetadata> = res.body
                                 const modifyIndex: number = metadata[0].ModifyIndex
+                                const nextValue: T = (Utils.decodeBase64(metadata[0].Value) as T)
                                 numRetries = 0
-                                if (modifyIndex !== index) {
-                                    if (sink(undefined, decodeBase64(metadata[0].Value) as T)) {
+
+                                if (modifyIndex !== index && !Utils.deepEqual(currentValue, nextValue)) {
+                                    currentValue = nextValue
+                                    if (sink(undefined, currentValue)) {
                                         _watch(modifyIndex)
                                     }
                                 } else {
@@ -141,7 +146,7 @@ export class KvStore {
     }
 
     public set(key: IKey, value: any, requestOptions: CoreOptions = {}): Promise<boolean> {
-        const extendedOptions = deepMerge(this.baseOptions, requestOptions)
+        const extendedOptions = Utils.deepMerge(this.baseOptions, requestOptions)
         return this.client.send(
             updateRequest({ key, value }),
             extendedOptions,
@@ -160,7 +165,7 @@ export class KvStore {
     }
 
     public delete(key: IKey, requestOptions: CoreOptions = {}): Promise<boolean> {
-        const extendedOptions = deepMerge(this.baseOptions, requestOptions)
+        const extendedOptions = Utils.deepMerge(this.baseOptions, requestOptions)
         return this.client.send(
             deleteRequest({ key }),
             extendedOptions,

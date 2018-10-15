@@ -2,8 +2,7 @@ import { CoreOptions, RequestResponse, Response } from 'request'
 
 import * as logger from '../logger'
 import { Observer, ValueSink } from '../Observer'
-import { defaultAddresses, splitQueryMap } from '../utils'
-import { deepMerge } from '../utils'
+import * as Utils from '../utils'
 import { ConsulClient } from './ConsulClient'
 import {
     CatalogRequestType,
@@ -23,7 +22,7 @@ export class Catalog {
     private maxRetries: number
 
     constructor(
-        consulAddresses: Array<string> = defaultAddresses(),
+        consulAddresses: Array<string> = Utils.defaultAddresses(),
         baseOptions: CoreOptions = {},
         maxRetries: number = 5,
     ) {
@@ -38,7 +37,7 @@ export class Catalog {
         service: IRegisterEntityPayload,
         requestOptions: CoreOptions = {},
     ): Promise<boolean> {
-        const extendedOptions = deepMerge(this.baseOptions, requestOptions)
+        const extendedOptions = Utils.deepMerge(this.baseOptions, requestOptions)
         return this.client
             .send(
                 {
@@ -61,7 +60,7 @@ export class Catalog {
     }
 
     public listNodes(requestOptions: CoreOptions = {}): Promise<Array<INodeDescription>> {
-        const extendedOptions = deepMerge(this.baseOptions, requestOptions)
+        const extendedOptions = Utils.deepMerge(this.baseOptions, requestOptions)
         return this.client
             .send(
                 {
@@ -83,7 +82,7 @@ export class Catalog {
     }
 
     public listServices(requestOptions: CoreOptions = {}): Promise<IServiceMap> {
-        const extendedOptions = deepMerge(this.baseOptions, requestOptions)
+        const extendedOptions = Utils.deepMerge(this.baseOptions, requestOptions)
         return this.client
             .send(
                 {
@@ -108,8 +107,8 @@ export class Catalog {
         serviceName: string,
         requestOptions: CoreOptions = {},
     ): Promise<Array<IServiceDescription>> {
-        const extendedOptions = deepMerge(this.baseOptions, requestOptions)
-        const queryMap: IQueryMap = splitQueryMap(serviceName)
+        const extendedOptions = Utils.deepMerge(this.baseOptions, requestOptions)
+        const queryMap: IQueryMap = Utils.splitQueryMap(serviceName)
 
         return this.client
             .send(
@@ -160,8 +159,9 @@ export class Catalog {
     }
 
     public watchAddress(serviceName: string, requestOptions: CoreOptions = {}): Observer<string> {
-        const extendedOptions = deepMerge(this.baseOptions, requestOptions)
-        const queryMap: IQueryMap = splitQueryMap(serviceName)
+        const extendedOptions = Utils.deepMerge(this.baseOptions, requestOptions)
+        const queryMap: IQueryMap = Utils.splitQueryMap(serviceName)
+        let currentValue: any
         let numRetries: number = 0
 
         const observer = new Observer((sink: ValueSink<string>): void => {
@@ -188,12 +188,15 @@ export class Catalog {
                                 const address: string = metadata[0].ServiceAddress || metadata[0].Address
                                 const port: number = metadata[0].ServicePort || 80
                                 const modifyIndex: number = metadata[0].ModifyIndex
+                                const nextValue: string = `${address}:${port}`
                                 numRetries = 0
 
-                                if (modifyIndex !== index) {
-                                    if (sink(undefined, `${address}:${port}`)) {
+                                if (modifyIndex !== index && currentValue !== nextValue) {
+                                    currentValue = nextValue
+                                    if (sink(undefined, currentValue)) {
                                         _watch(modifyIndex)
                                     }
+
                                 } else {
                                     setTimeout(() => _watch(index), 5000)
                                 }

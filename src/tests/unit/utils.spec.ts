@@ -139,4 +139,54 @@ describe('Utils', () => {
             expect(Utils.ensureProtocol(url)).to.equal('http://' + url)
         })
     })
+
+    describe('deepEqual', () => {
+        it('should return true for equal objects', async () => {
+            expect(Utils.deepEqual({
+                one: 1,
+                two: {
+                    three: 3,
+                    four: 'four',
+                },
+            }, {
+                one: 1,
+                two: {
+                    three: 3,
+                    four: 'four',
+                },
+            })).to.equal(true)
+        })
+
+        it('should return true for equal arrays', async () => {
+            expect(Utils.deepEqual([ 1, 2, [ 3, 4 ] ], [ 1, 2, [3, 4 ] ])).to.equal(true)
+        })
+
+        it('should return true for equal strings', async () => {
+            expect(Utils.deepEqual('test', 'test')).to.equal(true)
+        })
+
+        it('should return false for objects that are not equal', async () => {
+            expect(Utils.deepEqual({
+                one: 1,
+                two: {
+                    three: 3,
+                    four: 'four',
+                },
+            }, {
+                one: 1,
+                two: {
+                    three: 3,
+                    four: 'five',
+                },
+            })).to.equal(false)
+        })
+
+        it('should return false for arrays that are not equal', async () => {
+            expect(Utils.deepEqual([ 1, 2, [ 3, 4 ] ], [ 1, 2, [ 6, 4 ] ])).to.equal(false)
+        })
+
+        it('should return false for strings that are not equal', async () => {
+            expect(Utils.deepEqual('test', 'booya')).to.equal(false)
+        })
+    })
 })

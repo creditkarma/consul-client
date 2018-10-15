@@ -133,6 +133,65 @@ export function deepMerge<Base, Update>(base: Base, update: Update): Base & Upda
     return newObj as Base & Update
 }
 
+export function arraysAreEqual(arr1: Array<any>, arr2: Array<any>): boolean {
+    if (arr1.length !== arr2.length) {
+        return false
+
+    } else {
+        for (const item of arr1) {
+            if (arr2.indexOf(item) === -1) {
+                return false
+            }
+        }
+
+        return true
+    }
+}
+
+export function deepEqual(obj1: any, obj2: any): boolean {
+    if (obj1 === obj2) {
+        return true
+
+    } else {
+        const obj1Type: string = typeof obj1
+        const obj2Type: string = typeof obj2
+
+        if (obj1Type !== obj2Type) {
+            return false
+
+        } else {
+            switch (obj1Type) {
+                case 'string':
+                case 'number':
+                case 'boolean':
+                case 'symbol':
+                    return false
+
+                default:
+                    if (obj1 === null || obj2 === null) {
+                        return false
+                    } else {
+                        const obj1Keys: Array<string> = Object.keys(obj1)
+                        const obj2Keys: Array<string> = Object.keys(obj2)
+
+                        if (!arraysAreEqual(obj1Keys, obj2Keys)) {
+                            return false
+
+                        } else {
+                            for (const key of obj1Keys) {
+                                if (!deepEqual(obj1[key], obj2[key])) {
+                                    return false
+                                }
+                            }
+
+                            return true
+                        }
+                    }
+            }
+        }
+    }
+}
+
 export function headersForRequest(req: KVRequest | CatalogRequest): IHeaderMap {
     const headers: IHeaderMap = {
         host: CONSUL_HOST_NAME,
