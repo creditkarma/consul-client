@@ -161,7 +161,6 @@ export class Catalog {
     public watchAddress(serviceName: string, requestOptions: CoreOptions = {}): Observer<string> {
         const extendedOptions = Utils.deepMerge(this.baseOptions, requestOptions)
         const queryMap: IQueryMap = Utils.splitQueryMap(serviceName)
-        let currentValue: any
         let numRetries: number = 0
 
         const observer = new Observer((sink: ValueSink<string>): void => {
@@ -188,12 +187,10 @@ export class Catalog {
                                 const address: string = metadata[0].ServiceAddress || metadata[0].Address
                                 const port: number = metadata[0].ServicePort || 80
                                 const modifyIndex: number = metadata[0].ModifyIndex
-                                const nextValue: string = `${address}:${port}`
                                 numRetries = 0
 
-                                if (modifyIndex !== index && currentValue !== nextValue) {
-                                    currentValue = nextValue
-                                    if (sink(undefined, currentValue)) {
+                                if (modifyIndex !== index) {
+                                    if (sink(undefined, `${address}:${port}`)) {
                                         _watch(modifyIndex)
                                     }
 

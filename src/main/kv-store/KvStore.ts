@@ -80,7 +80,6 @@ export class KvStore {
     public watch<T>(key: IKey, requestOptions: CoreOptions = {}): Observer<T> {
         const extendedOptions = Utils.deepMerge(this.baseOptions, requestOptions)
         let numRetries: number = 0
-        let currentValue: any
 
         const observer = new Observer((sink: ValueSink<T>): void => {
             const _watch = (index?: number) => {
@@ -93,12 +92,10 @@ export class KvStore {
                             case 200:
                                 const metadata: Array<IConsulMetadata> = res.body
                                 const modifyIndex: number = metadata[0].ModifyIndex
-                                const nextValue: T = (Utils.decodeBase64(metadata[0].Value) as T)
                                 numRetries = 0
 
-                                if (modifyIndex !== index && !Utils.deepEqual(currentValue, nextValue)) {
-                                    currentValue = nextValue
-                                    if (sink(undefined, currentValue)) {
+                                if (modifyIndex !== index) {
+                                    if (sink(undefined, (Utils.decodeBase64(metadata[0].Value) as T))) {
                                         _watch(modifyIndex)
                                     }
                                 } else {

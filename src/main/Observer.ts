@@ -1,3 +1,5 @@
+import * as Utils from './utils'
+
 export type ValueCallback<T> = (value: T) => void
 export type ErrorCallback = (err: Error) => void
 export type ValueSink<T> = (err: Error | undefined, value?: T) => boolean
@@ -47,7 +49,7 @@ export class Observer<T> {
         return this._value
     }
 
-    public onValue(cb: ValueCallback<T>): void {
+    public onValue(cb: ValueCallback<T>): this {
         if (this._isActive) {
             this._listeners.push(cb)
             if (this._value !== null) {
@@ -56,16 +58,20 @@ export class Observer<T> {
                 }, 0)
             }
         }
+
+        return this
     }
 
-    public onError(cb: ErrorCallback): void {
+    public onError(cb: ErrorCallback): this {
         if (this._isActive) {
             this._errorListeners.push(cb)
         }
+
+        return this
     }
 
     private update(value: T): boolean {
-        if (this._isActive && value !== this._value) {
+        if (this._isActive && !Utils.deepEqual(value, this._value)) {
             this._previous = this._value
             this._value = value
             this._listeners.forEach((next: ValueCallback<T>) => {
