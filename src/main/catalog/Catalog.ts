@@ -109,6 +109,7 @@ export class Catalog {
     ): Promise<Array<IServiceDescription>> {
         const extendedOptions = Utils.deepMerge(this.baseOptions, requestOptions)
         const queryMap: IQueryMap = Utils.splitQueryMap(serviceName)
+        const trimmedServiceName = serviceName.split('?')[0]
 
         return this.client
             .send(
@@ -116,7 +117,7 @@ export class Catalog {
                     type: CatalogRequestType.ListServiceNodesRequest,
                     apiVersion: 'v1',
                     section: 'catalog',
-                    serviceName,
+                    serviceName: trimmedServiceName,
                     dc: queryMap.dc,
                     service: queryMap.service,
                     tag: queryMap.tag,

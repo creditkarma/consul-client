@@ -19,27 +19,31 @@ describe('Observer', () => {
     })
 
     describe('onValue', () => {
-        it('should alert callback if Observer has value', (done) => {
-            const ob: Observer<string> = Observer.create('test')
-            const expected: string = 'test'
+        it('should alert callback if Observer has value', async () => {
+            return new Promise((resolve, reject) => {
+                const ob: Observer<string> = Observer.create('test')
+                const expected: string = 'test'
 
-            ob.onValue((val: string) => {
-                expect<string>(val).to.equal(expected)
-                done()
+                ob.onValue((val: string) => {
+                    expect<string>(val).to.equal(expected)
+                    resolve()
+                })
             })
         })
 
-        it('should alert callback when Observer is updated', (done) => {
-            const expected: string = 'foo'
-            const ob: Observer<string> = new Observer((sink) => {
-                setTimeout(() => {
-                    sink(undefined, expected)
+        it('should alert callback when Observer is updated', async () => {
+            return new Promise((resolve, reject) => {
+                const expected: string = 'foo'
+                const ob: Observer<string> = new Observer((sink) => {
+                    setTimeout(() => {
+                        sink(undefined, expected)
+                    })
                 })
-            })
 
-            ob.onValue((val: string) => {
-                expect<string>(val).to.equal(expected)
-                done()
+                ob.onValue((val: string) => {
+                    expect<string>(val).to.equal(expected)
+                    resolve()
+                })
             })
         })
     })

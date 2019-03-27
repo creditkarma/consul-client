@@ -75,114 +75,120 @@ describe('KvStore', () => {
         })
 
         describe('watch', () => {
-            it('should return an observer that updates any time the value updates', (done) => {
-                let count: number = 0
+            it('should return an observer that updates any time the value updates', async () => {
+                return new Promise((resolve, reject) => {
+                    let count: number = 0
 
-                client.watch<string>({ path: 'str' }).onValue((val: string): void => {
-                    if (count === 0) {
-                        expect(val).to.equal(mockStr)
-                        setTimeout(() => {
-                            client.set({ path: 'str' }, 'updated-str')
-                        }, 1000)
+                    client.watch<string>({ path: 'str' }).onValue((val: string): void => {
+                        if (count === 0) {
+                            expect(val).to.equal(mockStr)
+                            setTimeout(() => {
+                                client.set({ path: 'str' }, 'updated-str')
+                            }, 1000)
 
-                    } else if (count === 1) {
-                        expect(val).to.equal('updated-str')
-                        setTimeout(() => {
-                            client.set({ path: 'str' }, 'updated-again')
-                        }, 1000)
+                        } else if (count === 1) {
+                            expect(val).to.equal('updated-str')
+                            setTimeout(() => {
+                                client.set({ path: 'str' }, 'updated-again')
+                            }, 1000)
 
-                    } else if (count === 2) {
-                        expect(val).to.equal('updated-again')
-                        done()
+                        } else if (count === 2) {
+                            expect(val).to.equal('updated-again')
+                            resolve()
 
-                    } else {
-                        throw new Error('Nope')
-                    }
+                        } else {
+                            throw new Error('Nope')
+                        }
 
-                    count++
+                        count++
+                    })
                 })
             })
 
-            it('should return an observer that only updates when the new value is different', (done) => {
-                let count: number = 0
-                let updateCount: number = 0
+            it('should return an observer that only updates when the new value is different', async () => {
+                return new Promise((resolve, reject) => {
+                    let count: number = 0
+                    let updateCount: number = 0
 
-                client.watch<object>({ path: 'obj' }).onValue((val: object): void => {
-                    if (count === 0) {
-                        expect(val).to.equal(mockObj)
+                    client.watch<object>({ path: 'obj' }).onValue((val: object): void => {
+                        if (count === 0) {
+                            expect(val).to.equal(mockObj)
 
-                    } else if (count === 1) {
-                        expect(val).to.equal({ value: 'updated' })
+                        } else if (count === 1) {
+                            expect(val).to.equal({ value: 'updated' })
 
-                    } else if (count === 2) {
-                        expect(val).to.equal({ value: 'again' })
+                        } else if (count === 2) {
+                            expect(val).to.equal({ value: 'again' })
 
-                    } else if (count === 3) {
-                        expect(val).to.equal({ value: 'finally' })
-                        done()
+                        } else if (count === 3) {
+                            expect(val).to.equal({ value: 'finally' })
+                            resolve()
 
-                    } else {
-                        throw new Error('Nope')
+                        } else {
+                            throw new Error('Nope')
+                        }
+
+                        count++
+                    })
+
+                    function runUpdate() {
+                        setTimeout(() => {
+                            if (updateCount === 0) {
+                                client.set({ path: 'obj' }, { value: 'updated' })
+
+                            } else if (updateCount === 1) {
+                                client.set({ path: 'obj' }, { value: 'again' })
+
+                            } else if (updateCount === 2) {
+                                client.set({ path: 'obj' }, { value: 'again' })
+
+                            } else if (updateCount === 3) {
+                                client.set({ path: 'obj' }, { value: 'finally' })
+                            }
+
+                            if (updateCount < 3) {
+                                updateCount += 1
+                                runUpdate()
+                            }
+                        }, 2000)
                     }
 
-                    count++
+                    runUpdate()
                 })
+            })
 
-                function runUpdate() {
+            it('should return an observer that performs retries for errors', async () => {
+                return new Promise((resolve, reject) => {
+                    let count: number = 0
+
+                    client.watch<string>({ path: 'missing?wait=1s' }).onValue((val: string): void => {
+                        if (count === 0) {
+                            expect(val).to.equal('initial-val')
+                            setTimeout(() => {
+                                client.set({ path: 'missing' }, 'updated-str')
+                            }, 1000)
+
+                        } else if (count === 1) {
+                            expect(val).to.equal('updated-str')
+                            setTimeout(() => {
+                                client.set({ path: 'missing' }, 'updated-again')
+                            }, 1000)
+
+                        } else if (count === 2) {
+                            expect(val).to.equal('updated-again')
+                            resolve()
+
+                        } else {
+                            throw new Error('Nope')
+                        }
+
+                        count++
+                    })
+
                     setTimeout(() => {
-                        if (updateCount === 0) {
-                            client.set({ path: 'obj' }, { value: 'updated' })
-
-                        } else if (updateCount === 1) {
-                            client.set({ path: 'obj' }, { value: 'again' })
-
-                        } else if (updateCount === 2) {
-                            client.set({ path: 'obj' }, { value: 'again' })
-
-                        } else if (updateCount === 3) {
-                            client.set({ path: 'obj' }, { value: 'finally' })
-                        }
-
-                        if (updateCount < 3) {
-                            updateCount += 1
-                            runUpdate()
-                        }
-                    }, 2000)
-                }
-
-                runUpdate()
-            })
-
-            it('should return an observer that performs retries for errors', (done) => {
-                let count: number = 0
-
-                client.watch<string>({ path: 'missing?wait=1s' }).onValue((val: string): void => {
-                    if (count === 0) {
-                        expect(val).to.equal('initial-val')
-                        setTimeout(() => {
-                            client.set({ path: 'missing' }, 'updated-str')
-                        }, 1000)
-
-                    } else if (count === 1) {
-                        expect(val).to.equal('updated-str')
-                        setTimeout(() => {
-                            client.set({ path: 'missing' }, 'updated-again')
-                        }, 1000)
-
-                    } else if (count === 2) {
-                        expect(val).to.equal('updated-again')
-                        done()
-
-                    } else {
-                        throw new Error('Nope')
-                    }
-
-                    count++
+                        client.set({ path: 'missing' }, 'initial-val')
+                    }, 1000)
                 })
-
-                setTimeout(() => {
-                    client.set({ path: 'missing' }, 'initial-val')
-                }, 1000)
             })
         })
 
