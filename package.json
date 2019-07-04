@@ -24,7 +24,9 @@
     "posttest": "npm run docker:kill && rimraf consuldata/*",
     "test": "wait-on --timeout 20000 http://localhost:8500 && npm run lint && npm run test:unit && npm run test:integration",
     "test:unit": "lab --timeout 10000 --verbose -l -S ./dist/tests/unit/*.spec.js",
-    "test:integration": "lab --timeout 15000 --verbose -l -S ./dist/tests/integration/*.spec.js"
+    "test:integration": "lab --timeout 15000 --verbose -l -S ./dist/tests/integration/*.spec.js",
+    "snyk-protect": "snyk protect",
+    "prepare": "npm run snyk-protect"
   },
   "author": "Credit Karma",
   "license": "Apache-2.0",
@@ -46,6 +48,8 @@
     "@types/request-promise-native": "^1.0.15",
     "@types/request": "^2.48.1",
     "request": "^2.88.0",
-    "request-promise-native": "^1.0.7"
-  }
+    "request-promise-native": "^1.0.7",
+    "snyk": "^1.189.0"
+  },
+  "snyk": true
 }
