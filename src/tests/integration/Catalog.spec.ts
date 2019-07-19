@@ -1,5 +1,5 @@
-import { expect } from 'code'
-import * as Lab from 'lab'
+import { expect } from '@hapi/code'
+import * as Lab from '@hapi/lab'
 import { Catalog } from '../../main'
 
 export const lab = Lab.script()
@@ -9,25 +9,27 @@ const it = lab.it
 
 describe('KvStore', () => {
     describe('With standard config', () => {
-        const client = new Catalog([ 'http://127.0.0.1:8500' ])
+        const client = new Catalog(['http://127.0.0.1:8500'])
 
         it('should register a service to a given node', async () => {
-            return client.registerEntity({
-                Node: 'bango',
-                Address: '192.168.4.19',
-                Service: {
-                    Service: 'my-thing',
-                    Address: '127.0.0.1',
-                    Port: 8080,
-                },
-            }).then((success: boolean) => {
-                expect(success).to.equal(true)
-            })
+            return client
+                .registerEntity({
+                    Node: 'bango',
+                    Address: '192.168.4.19',
+                    Service: {
+                        Service: 'my-thing',
+                        Address: '127.0.0.1',
+                        Port: 8080,
+                    },
+                })
+                .then((success: boolean) => {
+                    expect(success).to.equal(true)
+                })
         })
 
         it('should list available services', async () => {
             return client.listServices().then((services: any) => {
-                expect(services).to.equal({ 'consul': [], 'my-thing': [] })
+                expect(services).to.equal({ consul: [], 'my-thing': [] })
             })
         })
 
@@ -41,7 +43,7 @@ describe('KvStore', () => {
             return new Promise((resolve, reject) => {
                 let count: number = 0
                 client.watchAddress('my-thing').onValue((next: string) => {
-                    if (count ===  0) {
+                    if (count === 0) {
                         expect(next).to.equal('127.0.0.1:8080')
 
                         client.registerEntity({
@@ -65,25 +67,27 @@ describe('KvStore', () => {
     })
 
     describe('With fail over', () => {
-        const client = new Catalog([ '127.0.0.1:9000', '127.0.0.1:8500' ])
+        const client = new Catalog(['127.0.0.1:9000', '127.0.0.1:8500'])
 
         it('should register a service to a given node', async () => {
-            return client.registerEntity({
-                Node: 'bango',
-                Address: '192.168.4.19',
-                Service: {
-                    Service: 'my-thing',
-                    Address: '127.0.0.1',
-                    Port: 8080,
-                },
-            }).then((success: boolean) => {
-                expect(success).to.equal(true)
-            })
+            return client
+                .registerEntity({
+                    Node: 'bango',
+                    Address: '192.168.4.19',
+                    Service: {
+                        Service: 'my-thing',
+                        Address: '127.0.0.1',
+                        Port: 8080,
+                    },
+                })
+                .then((success: boolean) => {
+                    expect(success).to.equal(true)
+                })
         })
 
         it('should list available services', async () => {
             return client.listServices().then((services: any) => {
-                expect(services).to.equal({ 'consul': [], 'my-thing': [] })
+                expect(services).to.equal({ consul: [], 'my-thing': [] })
             })
         })
 
@@ -97,7 +101,7 @@ describe('KvStore', () => {
             return new Promise((resolve, reject) => {
                 let count: number = 0
                 client.watchAddress('my-thing').onValue((next: string) => {
-                    if (count ===  0) {
+                    if (count === 0) {
                         expect(next).to.equal('127.0.0.1:8080')
 
                         client.registerEntity({

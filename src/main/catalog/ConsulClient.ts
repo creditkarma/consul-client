@@ -3,11 +3,7 @@ import * as rpn from 'request-promise-native'
 
 import { CatalogRequest, CatalogRequestType } from './types'
 
-import {
-    cleanQueryParams,
-    deepMerge,
-    headersForRequest,
-} from '../utils'
+import { cleanQueryParams, deepMerge, headersForRequest } from '../utils'
 
 import { BaseClient } from '../BaseClient'
 
@@ -18,7 +14,10 @@ const request = rpn.defaults({
 })
 
 export class ConsulClient extends BaseClient<CatalogRequest> {
-    protected processRequest(req: CatalogRequest, options: CoreOptions = {}): Promise<RequestResponse> {
+    protected processRequest(
+        req: CatalogRequest,
+        options: CoreOptions = {},
+    ): Promise<RequestResponse> {
         switch (req.type) {
             case CatalogRequestType.RegisterEntityRequest:
                 return request(
@@ -63,7 +62,9 @@ export class ConsulClient extends BaseClient<CatalogRequest> {
             case CatalogRequestType.ListServiceNodesRequest:
                 return request(
                     deepMerge(options, {
-                        uri: `${this.getPathForRequest(req)}/service/${req.serviceName}`,
+                        uri: `${this.getPathForRequest(req)}/service/${
+                            req.serviceName
+                        }`,
                         method: 'GET',
                         headers: headersForRequest(req),
                         qs: cleanQueryParams({
@@ -75,7 +76,9 @@ export class ConsulClient extends BaseClient<CatalogRequest> {
 
             default:
                 const msg: any = req
-                return Promise.reject(new Error(`Unsupported request type: ${msg}`))
+                return Promise.reject(
+                    new Error(`Unsupported request type: ${msg}`),
+                )
         }
     }
 

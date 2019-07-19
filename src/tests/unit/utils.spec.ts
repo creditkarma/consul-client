@@ -1,5 +1,5 @@
-import { expect } from 'code'
-import * as Lab from 'lab'
+import { expect } from '@hapi/code'
+import * as Lab from '@hapi/lab'
 import { IQueryMap } from '../../main/types'
 import * as Utils from '../../main/utils'
 
@@ -20,7 +20,9 @@ describe('Utils', () => {
         })
 
         it('should handle multiple values', async () => {
-            const actual: IQueryMap = Utils.splitQueryMap('hvault?dc=dc1&near=blah&service=my-service')
+            const actual: IQueryMap = Utils.splitQueryMap(
+                'hvault?dc=dc1&near=blah&service=my-service',
+            )
             const expected: IQueryMap = {
                 dc: 'dc1',
                 near: 'blah',
@@ -120,7 +122,11 @@ describe('Utils', () => {
         })
 
         it('should remove undefined values from a key/value map', async () => {
-            const testObj: IQueryMap = { key1: 'one', key2: undefined, key3: 'test' }
+            const testObj: IQueryMap = {
+                key1: 'one',
+                key2: undefined,
+                key3: 'test',
+            }
             const actual: IQueryMap = Utils.cleanQueryParams(testObj)
             const expected: IQueryMap = { key1: 'one', key3: 'test' }
 
@@ -142,23 +148,30 @@ describe('Utils', () => {
 
     describe('deepEqual', () => {
         it('should return true for equal objects', async () => {
-            expect(Utils.deepEqual({
-                one: 1,
-                two: {
-                    three: 3,
-                    four: 'four',
-                },
-            }, {
-                one: 1,
-                two: {
-                    three: 3,
-                    four: 'four',
-                },
-            })).to.equal(true)
+            expect(
+                Utils.deepEqual(
+                    {
+                        one: 1,
+                        two: {
+                            three: 3,
+                            four: 'four',
+                        },
+                    },
+                    {
+                        one: 1,
+                        two: {
+                            three: 3,
+                            four: 'four',
+                        },
+                    },
+                ),
+            ).to.equal(true)
         })
 
         it('should return true for equal arrays', async () => {
-            expect(Utils.deepEqual([ 1, 2, [ 3, 4 ] ], [ 1, 2, [3, 4 ] ])).to.equal(true)
+            expect(Utils.deepEqual([1, 2, [3, 4]], [1, 2, [3, 4]])).to.equal(
+                true,
+            )
         })
 
         it('should return true for equal strings', async () => {
@@ -166,23 +179,30 @@ describe('Utils', () => {
         })
 
         it('should return false for objects that are not equal', async () => {
-            expect(Utils.deepEqual({
-                one: 1,
-                two: {
-                    three: 3,
-                    four: 'four',
-                },
-            }, {
-                one: 1,
-                two: {
-                    three: 3,
-                    four: 'five',
-                },
-            })).to.equal(false)
+            expect(
+                Utils.deepEqual(
+                    {
+                        one: 1,
+                        two: {
+                            three: 3,
+                            four: 'four',
+                        },
+                    },
+                    {
+                        one: 1,
+                        two: {
+                            three: 3,
+                            four: 'five',
+                        },
+                    },
+                ),
+            ).to.equal(false)
         })
 
         it('should return false for arrays that are not equal', async () => {
-            expect(Utils.deepEqual([ 1, 2, [ 3, 4 ] ], [ 1, 2, [ 6, 4 ] ])).to.equal(false)
+            expect(Utils.deepEqual([1, 2, [3, 4]], [1, 2, [6, 4]])).to.equal(
+                false,
+            )
         })
 
         it('should return false for strings that are not equal', async () => {

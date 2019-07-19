@@ -36,9 +36,9 @@ export interface IConsulDeleteRequest extends IKVRequest {
 }
 
 export type KVRequest<T = any> =
-    IConsulGetRequest |
-    IConsulUpdateRequest<T> |
-    IConsulDeleteRequest
+    | IConsulGetRequest
+    | IConsulUpdateRequest<T>
+    | IConsulDeleteRequest
 
 export interface IConsulMetadata {
     CreateIndex: number

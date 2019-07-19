@@ -19,7 +19,10 @@ const request = rpn.defaults({
 })
 
 export class ConsulClient extends BaseClient<KVRequest> {
-    protected processRequest(req: KVRequest, options: CoreOptions): Promise<RequestResponse> {
+    protected processRequest(
+        req: KVRequest,
+        options: CoreOptions,
+    ): Promise<RequestResponse> {
         switch (req.type) {
             case RequestType.GetRequest:
                 return request(
@@ -61,7 +64,9 @@ export class ConsulClient extends BaseClient<KVRequest> {
 
             default:
                 const msg: never = req
-                return Promise.reject(new Error(`Unsupported request type: ${msg}`))
+                return Promise.reject(
+                    new Error(`Unsupported request type: ${msg}`),
+                )
         }
     }
 

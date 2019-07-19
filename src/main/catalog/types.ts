@@ -112,13 +112,13 @@ export interface IDeregisterEntityRequest extends ICatalogRequest {
 }
 
 export type CatalogRequest =
-    IListNodesRequest |
-    IListDatacentersRequest |
-    IListServicesRequest |
-    IListNodeServicesRequest |
-    IListServiceNodesRequest |
-    IRegisterEntityRequest |
-    IDeregisterEntityRequest
+    | IListNodesRequest
+    | IListDatacentersRequest
+    | IListServicesRequest
+    | IListNodeServicesRequest
+    | IListServiceNodesRequest
+    | IRegisterEntityRequest
+    | IDeregisterEntityRequest
 
 export interface IDeregisterResponse {
     Node: string

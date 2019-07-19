@@ -25,10 +25,8 @@ export class Observer<T> {
         updater((err: Error | undefined, newValue?: T): boolean => {
             if (err !== undefined) {
                 return this.updateErrors(err)
-
             } else if (newValue !== undefined) {
                 return this.update(newValue)
-
             } else {
                 return false
             }

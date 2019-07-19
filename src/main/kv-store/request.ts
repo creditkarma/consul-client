@@ -29,7 +29,9 @@ function merge<T>(...objs: Array<any>): T {
     return newObj
 }
 
-export function getRequest(options: Partial<IConsulGetRequest>): IConsulGetRequest {
+export function getRequest(
+    options: Partial<IConsulGetRequest>,
+): IConsulGetRequest {
     return merge(DEFAULT_GET_REQUEST, options)
 }
 
@@ -43,7 +45,9 @@ export const DEFAULT_UPDATE_REQUEST: IConsulUpdateRequest = {
     value: '',
 }
 
-export function updateRequest(options: Partial<IConsulUpdateRequest>): IConsulUpdateRequest {
+export function updateRequest(
+    options: Partial<IConsulUpdateRequest>,
+): IConsulUpdateRequest {
     return merge(DEFAULT_UPDATE_REQUEST, options)
 }
 
@@ -56,6 +60,8 @@ export const DEFAULT_DELETE_REQUEST: IConsulDeleteRequest = {
     key: { path: '' },
 }
 
-export function deleteRequest(options: Partial<IConsulDeleteRequest>): IConsulDeleteRequest {
+export function deleteRequest(
+    options: Partial<IConsulDeleteRequest>,
+): IConsulDeleteRequest {
     return merge(DEFAULT_DELETE_REQUEST, options)
 }

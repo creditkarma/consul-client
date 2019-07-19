@@ -37,7 +37,10 @@ export class Catalog {
         service: IRegisterEntityPayload,
         requestOptions: CoreOptions = {},
     ): Promise<boolean> {
-        const extendedOptions = Utils.deepMerge(this.baseOptions, requestOptions)
+        const extendedOptions = Utils.deepMerge(
+            this.baseOptions,
+            requestOptions,
+        )
         return this.client
             .send(
                 {
@@ -59,8 +62,13 @@ export class Catalog {
             })
     }
 
-    public listNodes(requestOptions: CoreOptions = {}): Promise<Array<INodeDescription>> {
-        const extendedOptions = Utils.deepMerge(this.baseOptions, requestOptions)
+    public listNodes(
+        requestOptions: CoreOptions = {},
+    ): Promise<Array<INodeDescription>> {
+        const extendedOptions = Utils.deepMerge(
+            this.baseOptions,
+            requestOptions,
+        )
         return this.client
             .send(
                 {
@@ -81,8 +89,13 @@ export class Catalog {
             })
     }
 
-    public listServices(requestOptions: CoreOptions = {}): Promise<IServiceMap> {
-        const extendedOptions = Utils.deepMerge(this.baseOptions, requestOptions)
+    public listServices(
+        requestOptions: CoreOptions = {},
+    ): Promise<IServiceMap> {
+        const extendedOptions = Utils.deepMerge(
+            this.baseOptions,
+            requestOptions,
+        )
         return this.client
             .send(
                 {
@@ -107,7 +120,10 @@ export class Catalog {
         serviceName: string,
         requestOptions: CoreOptions = {},
     ): Promise<Array<IServiceDescription>> {
-        const extendedOptions = Utils.deepMerge(this.baseOptions, requestOptions)
+        const extendedOptions = Utils.deepMerge(
+            this.baseOptions,
+            requestOptions,
+        )
         const queryMap: IQueryMap = Utils.splitQueryMap(serviceName)
         const trimmedServiceName = serviceName.split('?')[0]
 
@@ -137,104 +153,138 @@ export class Catalog {
             })
     }
 
-    public resolveAddress(serviceName: string, requestOptions: CoreOptions = {}): Promise<string> {
+    public resolveAddress(
+        serviceName: string,
+        requestOptions: CoreOptions = {},
+    ): Promise<string> {
         return this.listNodesForService(serviceName, requestOptions).then(
             (res: Array<IServiceDescription>) => {
                 if (res.length > 0) {
-                    const address: string = res[0].ServiceAddress || res[0].Address
+                    const address: string =
+                        res[0].ServiceAddress || res[0].Address
                     const port: number = res[0].ServicePort || 80
                     return `${address}:${port}`
                 } else {
-                    throw new Error(`No service found with name[${serviceName}]`)
+                    throw new Error(
+                        `No service found with name[${serviceName}]`,
+                    )
                 }
             },
         )
     }
 
     public ignoreAddress(serviceName: string): void {
-        const observer: Observer<string> | undefined = this.watchMap.get(serviceName)
+        const observer: Observer<string> | undefined = this.watchMap.get(
+            serviceName,
+        )
         if (observer !== undefined) {
             observer.destroy()
             this.watchMap.delete(serviceName)
         }
     }
 
-    public watchAddress(serviceName: string, requestOptions: CoreOptions = {}): Observer<string> {
-        const extendedOptions = Utils.deepMerge(this.baseOptions, requestOptions)
+    public watchAddress(
+        serviceName: string,
+        requestOptions: CoreOptions = {},
+    ): Observer<string> {
+        const extendedOptions = Utils.deepMerge(
+            this.baseOptions,
+            requestOptions,
+        )
         const queryMap: IQueryMap = Utils.splitQueryMap(serviceName)
         let numRetries: number = 0
 
         const observer = new Observer((sink: ValueSink<string>): void => {
             const _watch = (index?: number) => {
-                this.client.send(
-                    {
-                        type: CatalogRequestType.ListServiceNodesRequest,
-                        apiVersion: 'v1',
-                        section: 'catalog',
-                        serviceName,
-                        index,
-                        dc: queryMap.dc,
-                        service: queryMap.service,
-                        tag: queryMap.tag,
-                        near: queryMap.near,
-                        'node-meta': queryMap['node-meta'],
-                    },
-                    extendedOptions,
-                ).then((res: RequestResponse) => {
-                    if (this.watchMap.has(serviceName)) {
-                        switch (res.statusCode) {
-                            case 200:
-                                const metadata: Array<IServiceDescription> = res.body
-                                const address: string = metadata[0].ServiceAddress || metadata[0].Address
-                                const port: number = metadata[0].ServicePort || 80
-                                const modifyIndex: number = metadata[0].ModifyIndex
-                                numRetries = 0
+                this.client
+                    .send(
+                        {
+                            type: CatalogRequestType.ListServiceNodesRequest,
+                            apiVersion: 'v1',
+                            section: 'catalog',
+                            serviceName,
+                            index,
+                            dc: queryMap.dc,
+                            service: queryMap.service,
+                            tag: queryMap.tag,
+                            near: queryMap.near,
+                            'node-meta': queryMap['node-meta'],
+                        },
+                        extendedOptions,
+                    )
+                    .then((res: RequestResponse) => {
+                        if (this.watchMap.has(serviceName)) {
+                            switch (res.statusCode) {
+                                case 200:
+                                    const metadata: Array<IServiceDescription> =
+                                        res.body
+                                    const address: string =
+                                        metadata[0].ServiceAddress ||
+                                        metadata[0].Address
+                                    const port: number =
+                                        metadata[0].ServicePort || 80
+                                    const modifyIndex: number =
+                                        metadata[0].ModifyIndex
+                                    numRetries = 0
 
-                                if (modifyIndex !== index) {
-                                    if (sink(undefined, `${address}:${port}`)) {
-                                        _watch(modifyIndex)
+                                    if (modifyIndex !== index) {
+                                        if (
+                                            sink(
+                                                undefined,
+                                                `${address}:${port}`,
+                                            )
+                                        ) {
+                                            _watch(modifyIndex)
+                                        }
+                                    } else {
+                                        setTimeout(() => _watch(index), 5000)
                                     }
 
-                                } else {
-                                    setTimeout(() => _watch(index), 5000)
-                                }
+                                    break
 
-                                break
+                                case 404:
+                                    logger.error(
+                                        `Unable to find address for service[${serviceName}]`,
+                                    )
+                                    if (numRetries < this.maxRetries) {
+                                        setTimeout(_watch, 5000)
+                                        numRetries += 1
+                                    }
+                                    break
 
-                            case 404:
-                                logger.error(`Unable to find address for service[${serviceName}]`)
-                                if (numRetries < this.maxRetries) {
-                                    setTimeout(_watch, 5000)
-                                    numRetries += 1
-                                }
-                                break
-
-                            default:
-                                logger.error(
-                                    `Error retrieving address for service[${serviceName}]: ${res.statusMessage}.`,
-                                )
-                                if (numRetries < this.maxRetries) {
-                                    setTimeout(_watch, 5000)
-                                    numRetries += 1
-                                } else {
-                                    sink(new Error(
+                                default:
+                                    logger.error(
                                         `Error retrieving address for service[${serviceName}]: ${res.statusMessage}.`,
-                                    ))
-                                }
-                                break
+                                    )
+                                    if (numRetries < this.maxRetries) {
+                                        setTimeout(_watch, 5000)
+                                        numRetries += 1
+                                    } else {
+                                        sink(
+                                            new Error(
+                                                `Error retrieving address for service[${serviceName}]: ${res.statusMessage}.`,
+                                            ),
+                                        )
+                                    }
+                                    break
+                            }
                         }
-                    }
-                }).catch((err: any) => {
-                    logger.error(`Error retrieving address for service[${serviceName}]: ${err.message}.`)
-                    if (numRetries < this.maxRetries) {
-                        setTimeout(_watch, 5000)
-                        numRetries += 1
-                    } else {
-                        sink(new Error(
+                    })
+                    .catch((err: any) => {
+                        logger.error(
                             `Error retrieving address for service[${serviceName}]: ${err.message}.`,
-                        ))
-                    }
-                })
+                        )
+                        if (numRetries < this.maxRetries) {
+                            setTimeout(_watch, 5000)
+                            numRetries += 1
+                        } else {
+                            sink(
+                                new Error(
+                                    `Error retrieving address for service[${serviceName}]: ${err.message}.`,
+                                ),
+                            )
+                        }
+                    })
             }
 
             // Start watching

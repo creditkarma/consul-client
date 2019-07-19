@@ -1,4 +1,4 @@
-import { CoreOptions, RequestResponse} from 'request'
+import { CoreOptions, RequestResponse } from 'request'
 
 export interface IQueryMap {
     index?: number
