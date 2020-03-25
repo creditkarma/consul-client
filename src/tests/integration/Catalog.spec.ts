@@ -12,14 +12,43 @@ describe('KvStore', () => {
         const client = new Catalog(['http://127.0.0.1:8500'])
 
         it('should register a service to a given node', async () => {
+            await client.registerEntity({
+                Node: 'bango',
+                Address: '192.168.4.19',
+                Service: {
+                    ID: 'my-thing2',
+                    Service: 'my-thing',
+                    Address: '127.0.0.2',
+                    Port: 8090,
+                },
+                Check: {
+                    Node: 'bango',
+                    CheckID: 'service:my-thing2',
+                    Name: 'test service health check',
+                    Status: 'critical',
+                    ServiceID: 'my-thing2',
+                    Definition: {
+                        TCP: 'localhost:8888',
+                        Interval: '5s',
+                        Timeout: '1s',
+                        DeregisterCriticalServiceAfter: '30s',
+                    },
+                },
+            })
             return client
                 .registerEntity({
                     Node: 'bango',
                     Address: '192.168.4.19',
                     Service: {
+                        ID: 'my-thing1',
                         Service: 'my-thing',
                         Address: '127.0.0.1',
                         Port: 8080,
+                    },
+                    Check: {
+                        CheckID: 'service:my-thing1',
+                        Status: 'passing',
+                        ServiceID: 'my-thing1',
                     },
                 })
                 .then((success: boolean) => {
@@ -50,6 +79,7 @@ describe('KvStore', () => {
                             Node: 'bango',
                             Address: '192.168.4.19',
                             Service: {
+                                ID: 'my-thing1',
                                 Service: 'my-thing',
                                 Address: '192.145.6.12',
                                 Port: 8082,
@@ -75,6 +105,7 @@ describe('KvStore', () => {
                     Node: 'bango',
                     Address: '192.168.4.19',
                     Service: {
+                        ID: 'my-thing1',
                         Service: 'my-thing',
                         Address: '127.0.0.1',
                         Port: 8080,
@@ -108,6 +139,7 @@ describe('KvStore', () => {
                             Node: 'bango',
                             Address: '192.168.4.19',
                             Service: {
+                                ID: 'my-thing1',
                                 Service: 'my-thing',
                                 Address: '192.145.6.12',
                                 Port: 8082,
