@@ -8,7 +8,7 @@ import {
     CatalogRequestType,
     INodeDescription,
     IRegisterEntityPayload,
-    IServiceDescription,
+    IServiceHealthDescription,
     IServiceMap,
 } from './types'
 
@@ -119,7 +119,7 @@ export class Catalog {
     public listNodesForService(
         serviceName: string,
         requestOptions: CoreOptions = {},
-    ): Promise<Array<IServiceDescription>> {
+    ): Promise<Array<IServiceHealthDescription>> {
         const extendedOptions = Utils.deepMerge(
             this.baseOptions,
             requestOptions,
@@ -158,11 +158,12 @@ export class Catalog {
         requestOptions: CoreOptions = {},
     ): Promise<string> {
         return this.listNodesForService(serviceName, requestOptions).then(
-            (res: Array<IServiceDescription>) => {
+            (res: Array<IServiceHealthDescription>) => {
                 if (res.length > 0) {
-                    const address: string =
-                        res[0].ServiceAddress || res[0].Address
-                    const port: number = res[0].ServicePort || 80
+                    // Pick a random service from the list of healthy services
+                    const ID = Math.floor(Math.random() * res.length)
+                    const address: string = res[ID].Service.Address
+                    const port: number = res[ID].Service.Port || 80
                     return `${address}:${port}`
                 } else {
                     throw new Error(
@@ -216,15 +217,19 @@ export class Catalog {
                         if (this.watchMap.has(serviceName)) {
                             switch (res.statusCode) {
                                 case 200:
-                                    const metadata: Array<IServiceDescription> =
+                                    const metadata: Array<IServiceHealthDescription> =
                                         res.body
+                                    // Pick a random service from the list of healthy services
+                                    const ID = Math.floor(
+                                        Math.random() * metadata.length,
+                                    )
+
                                     const address: string =
-                                        metadata[0].ServiceAddress ||
-                                        metadata[0].Address
+                                        metadata[ID].Service.Address
                                     const port: number =
-                                        metadata[0].ServicePort || 80
+                                        metadata[ID].Service.Port || 80
                                     const modifyIndex: number =
-                                        metadata[0].ModifyIndex
+                                        metadata[ID].Service.ModifyIndex
                                     numRetries = 0
 
                                     if (modifyIndex !== index) {

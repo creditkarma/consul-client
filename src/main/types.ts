@@ -7,7 +7,7 @@ export interface IQueryMap {
     tag?: string
     near?: string
     'node-meta'?: string
-    [key: string]: string | number | undefined
+    [key: string]: string | number | boolean | undefined
 }
 
 export interface IHeaderMap {
