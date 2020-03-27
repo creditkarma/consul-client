@@ -62,7 +62,7 @@ export class ConsulClient extends BaseClient<CatalogRequest> {
             case CatalogRequestType.ListServiceNodesRequest:
                 const uri = `${this.getHealthPathForRequest(req)}/service/${
                     req.serviceName
-                }?passing=true`
+                }`
                 const newOptions = deepMerge(options, {
                     uri,
                     method: 'GET',
@@ -70,6 +70,9 @@ export class ConsulClient extends BaseClient<CatalogRequest> {
                     qs: cleanQueryParams({
                         dc: req.dc,
                         index: req.index,
+                        passing: true,
+                        wait: '55s',
+                        stale: '',
                     }),
                 })
                 return request(newOptions).promise()
