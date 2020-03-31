@@ -224,8 +224,13 @@ export class Catalog {
                                         Math.random() * metadata.length,
                                     )
 
+                                    /*
+                                    https://www.consul.io/api/catalog.html#serviceaddress
+                                    ServiceAddress is the IP address of the service host — if empty, node
+                                    address should be used
+                                    */
                                     const address: string =
-                                        metadata[ID].Service.Address
+                                        metadata[ID].Service.Address || metadata[ID].Node.Address
                                     const port: number =
                                         metadata[ID].Service.Port || 80
                                     const modifyIndex: number =
