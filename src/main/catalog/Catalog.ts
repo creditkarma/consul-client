@@ -162,8 +162,18 @@ export class Catalog {
                 if (res.length > 0) {
                     // Pick a random service from the list of healthy services
                     const ID = Math.floor(Math.random() * res.length)
-                    const address: string = res[ID].Service.Address
-                    const port: number = res[ID].Service.Port || 80
+                    /*
+                    https://www.consul.io/api/catalog.html#serviceaddress
+                    ServiceAddress is the IP address of the service host — if empty, node
+                    address should be used
+                    */
+                    const pickedNode = res[ID]
+                    const address: string =
+                        pickedNode.Service.Address &&
+                        pickedNode.Service.Address !== ''
+                            ? pickedNode.Service.Address
+                            : pickedNode.Node.Address
+                    const port: number = pickedNode.Service.Port || 80
                     return `${address}:${port}`
                 } else {
                     throw new Error(
@@ -224,12 +234,21 @@ export class Catalog {
                                         Math.random() * metadata.length,
                                     )
 
+                                    /*
+                                    https://www.consul.io/api/catalog.html#serviceaddress
+                                    ServiceAddress is the IP address of the service host — if empty, node
+                                    address should be used
+                                    */
+                                    const pickedNode = metadata[ID]
                                     const address: string =
-                                        metadata[ID].Service.Address
+                                        pickedNode.Service.Address &&
+                                        pickedNode.Service.Address !== ''
+                                            ? pickedNode.Service.Address
+                                            : pickedNode.Node.Address
                                     const port: number =
-                                        metadata[ID].Service.Port || 80
+                                        pickedNode.Service.Port || 80
                                     const modifyIndex: number =
-                                        metadata[ID].Service.ModifyIndex
+                                        pickedNode.Service.ModifyIndex
                                     numRetries = 0
 
                                     if (modifyIndex !== index) {
