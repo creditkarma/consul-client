@@ -65,15 +65,12 @@ export interface IServiceMeta {
 }
 
 export interface IService {
-    ID: string
+    ID?: string
     Service: string
-    Tags: Array<string>
-    Address: string
-    Meta: INodeMeta
-    Port: number
-    EnableTagOverride: boolean
-    CreateIndex: number
-    ModifyIndex: number
+    Tags?: Array<string>
+    Address?: string
+    Meta?: INodeMeta
+    Port?: number
 }
 
 export interface IDefinition {
@@ -100,8 +97,8 @@ export interface IRegisterEntityPayload {
     Address: string
     TaggedAddresses?: ITaggedAddresses
     NodeMeta?: INodeMeta
-    Service?: Partial<IService>
-    Check?: Partial<ICheck>
+    Service?: IService
+    Check?: ICheck
     SkipNodeUpdate?: boolean
 }
 
@@ -135,10 +132,8 @@ export interface INodeDescription {
     Node: string
     Address: string
     Datacenter: string
-    TaggedAddress?: string
-    Meta?: INodeMeta
-    CreatedIndex: number
-    ModifyIndex: number
+    TaggedAddresses: ITaggedAddresses
+    Meta: INodeMeta
 }
 
 export interface IServiceDescription {
@@ -157,11 +152,6 @@ export interface IServiceDescription {
     ServicePort: number
     ServiceMeta: IServiceMeta
     ServiceTags: Array<string>
-}
-
-export interface IServiceHealthDescription {
-    Node: INodeDescription
-    Service: IService
 }
 
 export interface IServiceList {
