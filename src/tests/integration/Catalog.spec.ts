@@ -94,6 +94,47 @@ describe('KvStore', () => {
                 })
             })
         })
+
+        it('should resolve to the node address if the service registered did not have address field', async () => {
+            return client
+                .registerEntity({
+                    Node: 'bango',
+                    Address: '192.168.4.19',
+                    Service: {
+                        ID: 'my-thing3',
+                        Service: 'my-thing3',
+                        Port: 8080,
+                    },
+                })
+                .then((success: boolean) => {
+                    expect(success).to.equal(true)
+                    return client
+                        .resolveAddress('my-thing3')
+                        .then((address: string) => {
+                            expect(address).to.equal('192.168.4.19:8080')
+                        })
+                })
+        })
+
+        it('should resolve to the node address and port to 80, if the service registered did not have address and port fields', async () => {
+            return client
+                .registerEntity({
+                    Node: 'bango',
+                    Address: '192.168.4.19',
+                    Service: {
+                        ID: 'my-thing3',
+                        Service: 'my-thing3',
+                    },
+                })
+                .then((success: boolean) => {
+                    expect(success).to.equal(true)
+                    return client
+                        .resolveAddress('my-thing3')
+                        .then((address: string) => {
+                            expect(address).to.equal('192.168.4.19:80')
+                        })
+                })
+        })
     })
 
     describe('With fail over', () => {
@@ -118,7 +159,11 @@ describe('KvStore', () => {
 
         it('should list available services', async () => {
             return client.listServices().then((services: any) => {
-                expect(services).to.equal({ consul: [], 'my-thing': [] })
+                expect(services).to.equal({
+                    consul: [],
+                    'my-thing': [],
+                    'my-thing3': [],
+                })
             })
         })
 
