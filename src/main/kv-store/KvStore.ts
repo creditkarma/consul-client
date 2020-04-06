@@ -63,9 +63,9 @@ export class KvStore {
                 switch (res.statusCode) {
                     case 200:
                         const metadata: Array<IConsulMetadata> = res.body
-                        return Promise.resolve(Utils.decodeBase64(
-                            metadata[0].Value,
-                        ) as T)
+                        return Promise.resolve(
+                            Utils.decodeBase64(metadata[0].Value) as T,
+                        )
 
                     case 404:
                         return Promise.resolve(null)
@@ -109,9 +109,12 @@ export class KvStore {
 
                                     if (modifyIndex !== index) {
                                         if (
-                                            sink(undefined, Utils.decodeBase64(
-                                                metadata[0].Value,
-                                            ) as T)
+                                            sink(
+                                                undefined,
+                                                Utils.decodeBase64(
+                                                    metadata[0].Value,
+                                                ) as T,
+                                            )
                                         ) {
                                             _watch(modifyIndex)
                                         }
