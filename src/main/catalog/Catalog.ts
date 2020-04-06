@@ -8,7 +8,7 @@ import {
     CatalogRequestType,
     INodeDescription,
     IRegisterEntityPayload,
-    IServiceDescription,
+    IServiceHealthDescription,
     IServiceMap,
 } from './types'
 
@@ -119,7 +119,7 @@ export class Catalog {
     public listNodesForService(
         serviceName: string,
         requestOptions: CoreOptions = {},
-    ): Promise<Array<IServiceDescription>> {
+    ): Promise<Array<IServiceHealthDescription>> {
         const extendedOptions = Utils.deepMerge(
             this.baseOptions,
             requestOptions,
@@ -158,11 +158,22 @@ export class Catalog {
         requestOptions: CoreOptions = {},
     ): Promise<string> {
         return this.listNodesForService(serviceName, requestOptions).then(
-            (res: Array<IServiceDescription>) => {
+            (res: Array<IServiceHealthDescription>) => {
                 if (res.length > 0) {
+                    // Pick a random service from the list of healthy services
+                    const ID = Math.floor(Math.random() * res.length)
+                    /*
+                    https://www.consul.io/api/catalog.html#serviceaddress
+                    ServiceAddress is the IP address of the service host — if empty, node
+                    address should be used
+                    */
+                    const pickedNode = res[ID]
                     const address: string =
-                        res[0].ServiceAddress || res[0].Address
-                    const port: number = res[0].ServicePort || 80
+                        pickedNode.Service.Address &&
+                        pickedNode.Service.Address !== ''
+                            ? pickedNode.Service.Address
+                            : pickedNode.Node.Address
+                    const port: number = pickedNode.Service.Port || 80
                     return `${address}:${port}`
                 } else {
                     throw new Error(
@@ -216,15 +227,28 @@ export class Catalog {
                         if (this.watchMap.has(serviceName)) {
                             switch (res.statusCode) {
                                 case 200:
-                                    const metadata: Array<IServiceDescription> =
+                                    const metadata: Array<IServiceHealthDescription> =
                                         res.body
+                                    // Pick a random service from the list of healthy services
+                                    const ID = Math.floor(
+                                        Math.random() * metadata.length,
+                                    )
+
+                                    /*
+                                    https://www.consul.io/api/catalog.html#serviceaddress
+                                    ServiceAddress is the IP address of the service host — if empty, node
+                                    address should be used
+                                    */
+                                    const pickedNode = metadata[ID]
                                     const address: string =
-                                        metadata[0].ServiceAddress ||
-                                        metadata[0].Address
+                                        pickedNode.Service.Address &&
+                                        pickedNode.Service.Address !== ''
+                                            ? pickedNode.Service.Address
+                                            : pickedNode.Node.Address
                                     const port: number =
-                                        metadata[0].ServicePort || 80
+                                        pickedNode.Service.Port || 80
                                     const modifyIndex: number =
-                                        metadata[0].ModifyIndex
+                                        pickedNode.Service.ModifyIndex
                                     numRetries = 0
 
                                     if (modifyIndex !== index) {

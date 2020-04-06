@@ -60,19 +60,22 @@ export class ConsulClient extends BaseClient<CatalogRequest> {
                 ).promise()
 
             case CatalogRequestType.ListServiceNodesRequest:
-                return request(
-                    deepMerge(options, {
-                        uri: `${this.getPathForRequest(req)}/service/${
-                            req.serviceName
-                        }`,
-                        method: 'GET',
-                        headers: headersForRequest(req),
-                        qs: cleanQueryParams({
-                            dc: req.dc,
-                            index: req.index,
-                        }),
+                const uri = `${this.getHealthPathForRequest(req)}/service/${
+                    req.serviceName
+                }`
+                const newOptions = deepMerge(options, {
+                    uri,
+                    method: 'GET',
+                    headers: headersForRequest(req),
+                    qs: cleanQueryParams({
+                        dc: req.dc,
+                        index: req.index,
+                        passing: true,
+                        wait: '55s',
+                        stale: '',
                     }),
-                ).promise()
+                })
+                return request(newOptions).promise()
 
             default:
                 const msg: any = req
@@ -80,6 +83,10 @@ export class ConsulClient extends BaseClient<CatalogRequest> {
                     new Error(`Unsupported request type: ${msg}`),
                 )
         }
+    }
+
+    protected getHealthPathForRequest(req: CatalogRequest): string {
+        return `${this.currentDestination}/${req.apiVersion}/health`
     }
 
     protected getPathForRequest(req: CatalogRequest): string {
