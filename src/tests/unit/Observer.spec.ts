@@ -46,5 +46,21 @@ describe('Observer', () => {
                 })
             })
         })
+
+        it('should alert callback when Observer presents an error', async () => {
+            return new Promise((resolve, reject) => {
+                const expected: string = 'failure'
+                const ob: Observer<string> = new Observer((sink) => {
+                    setTimeout(() => {
+                        sink(new Error(expected), undefined)
+                    })
+                })
+
+                ob.onError((err: Error) => {
+                    expect(err.message).to.equal(expected)
+                    resolve()
+                })
+            })
+        })
     })
 })
