@@ -125,13 +125,10 @@ export class KvStore {
                                     break
 
                                 case 404:
-                                    logger.error(
-                                        `Unable to find value for key[${key.path}]`,
+                                    logger.warn(
+                                        `Unable to find value for key[${key.path}]. Retrying...`,
                                     )
-                                    if (numRetries < this.maxRetries) {
-                                        setTimeout(_watch, 5000)
-                                        numRetries += 1
-                                    }
+                                    setTimeout(_watch, 5000)
                                     break
 
                                 default:

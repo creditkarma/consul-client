@@ -13,8 +13,12 @@ describe('KvStore', () => {
     const mockNum = 5
     const mockBool = true
 
+    /*
+    Note - Client max retries is set to '0' since there are currently no tests
+    formally engaging retry logic
+    */
     describe('With standard config', () => {
-        const client = new KvStore(['http://127.0.0.1:8500'])
+        const client = new KvStore(['http://127.0.0.1:8500'], {}, 0)
 
         describe('set', () => {
             it('should write a string to consul', async () => {
@@ -247,7 +251,11 @@ describe('KvStore', () => {
     })
 
     describe('With fail over', () => {
-        const failOverClient = new KvStore(['127.0.0.1:9000', '127.0.0.1:8500'])
+        const failOverClient = new KvStore(
+            ['127.0.0.1:9000', '127.0.0.1:8500'],
+            {},
+            0,
+        )
 
         describe('write', () => {
             it('should write a string to consul', async () => {
@@ -284,7 +292,11 @@ describe('KvStore', () => {
     })
 
     describe('With only invalid clients', () => {
-        const failOverClient = new KvStore(['127.0.0.1:9000', '127.0.0.1:9500'])
+        const failOverClient = new KvStore(
+            ['127.0.0.1:9000', '127.0.0.1:9500'],
+            {},
+            0,
+        )
 
         describe('write', () => {
             it('should reject', async () => {
@@ -330,10 +342,25 @@ describe('KvStore', () => {
                 )
             })
         })
+
+        describe('watch', () => {
+            it('should reject', async () => {
+                return failOverClient
+                    .watch<string>({ path: 'str' })
+                    .onValue((val: any) => {
+                        throw new Error('Should reject')
+                    })
+                    .onError((err) => {
+                        expect(err.message).to.equal(
+                            'Error: connect ECONNREFUSED 127.0.0.1:9500',
+                        )
+                    })
+            })
+        })
     })
 
     describe('When configured with no protocol', () => {
-        const shortClient = new KvStore(['127.0.0.1:8500'])
+        const shortClient = new KvStore(['127.0.0.1:8500'], {}, 0)
 
         describe('write', () => {
             it('should write a string to consul', async () => {
