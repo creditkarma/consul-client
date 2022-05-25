@@ -1,5 +1,6 @@
-import { CoreOptions, RequestResponse } from 'request'
-import * as rpn from 'request-promise-native'
+import { OptionsOfJSONResponseBody, Response } from 'got'
+
+import got from 'got'
 
 import { KVRequest, RequestType } from './types'
 
@@ -11,57 +12,70 @@ import {
 } from '../utils'
 
 import { BaseClient } from '../BaseClient'
-
-const request = rpn.defaults({
-    json: true,
-    simple: false,
-    resolveWithFullResponse: true,
-})
-
 export class ConsulClient extends BaseClient<KVRequest> {
     protected processRequest(
         req: KVRequest,
-        options: CoreOptions,
-    ): Promise<RequestResponse> {
+        options: OptionsOfJSONResponseBody = {
+            responseType: 'json',
+        },
+    ): Promise<Response> {
         switch (req.type) {
             case RequestType.GetRequest:
-                return request(
-                    deepMerge(options, {
-                        uri: this.getPathForRequest(req),
-                        method: 'GET',
-                        headers: headersForRequest(req),
-                        qs: cleanQueryParams({
-                            dc: req.key.dc,
-                            index: req.index,
-                        }),
-                    }),
-                ).promise()
-
+                return new Promise(async (resolve, reject) => {
+                    try {
+                        const response = await got(
+                            this.getPathForRequest(req),
+                            deepMerge(options, {
+                                method: 'GET',
+                                headers: headersForRequest(req),
+                                searchParams: cleanQueryParams({
+                                    dc: req.key.dc,
+                                    index: req.index,
+                                }),
+                            }),
+                        )
+                        resolve(response)
+                    } catch (err) {
+                        reject(err)
+                    }
+                })
             case RequestType.UpdateRequest:
-                return request(
-                    deepMerge(options, {
-                        uri: this.getPathForRequest(req),
-                        body: req.value,
-                        method: 'PUT',
-                        headers: headersForRequest(req),
-                        qs: cleanQueryParams({
-                            dc: req.key.dc,
-                        }),
-                    }),
-                ).promise()
-
+                return new Promise(async (resolve, reject) => {
+                    try {
+                        const response = await got(
+                            this.getPathForRequest(req),
+                            deepMerge(options, {
+                                body: Buffer.from(JSON.stringify(req.value)),
+                                method: 'PUT',
+                                headers: headersForRequest(req),
+                                searchParams: cleanQueryParams({
+                                    dc: req.key.dc,
+                                }),
+                            }),
+                        )
+                        resolve(response)
+                    } catch (err) {
+                        reject(err)
+                    }
+                })
             case RequestType.DeleteRequest:
-                return request(
-                    deepMerge(options, {
-                        uri: this.getPathForRequest(req),
-                        method: 'DELETE',
-                        headers: headersForRequest(req),
-                        qs: cleanQueryParams({
-                            dc: req.key.dc,
-                        }),
-                    }),
-                ).promise()
-
+                return new Promise(async (resolve, reject) => {
+                    try {
+                        const response = await got(
+                            this.getPathForRequest(req),
+                            deepMerge(options, {
+                                method: 'DELETE',
+                                headers: headersForRequest(req),
+                                searchParams: cleanQueryParams({
+                                    dc: req.key.dc,
+                                }),
+                            }),
+                        )
+                        resolve(response)
+                    } catch (err) {
+                        reject(err)
+                    }
+                })
             default:
                 const msg: never = req
                 return Promise.reject(

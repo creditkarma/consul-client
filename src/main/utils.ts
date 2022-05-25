@@ -1,6 +1,5 @@
 import * as url from 'url'
-import merge = require('lodash/merge')
-import isEqual = require('lodash/isEqual')
+import { merge, isEqual } from 'lodash'
 
 import {
     CONSUL_ADDRESS,

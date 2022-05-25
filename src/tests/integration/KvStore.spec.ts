@@ -82,7 +82,7 @@ describe('KvStore', () => {
 
         describe('watch', () => {
             it('should return an observer that updates any time the value updates', async () => {
-                return new Promise((resolve, reject) => {
+                return new Promise<void>((resolve, reject) => {
                     let count: number = 0
 
                     client
@@ -111,7 +111,7 @@ describe('KvStore', () => {
             })
 
             it('should return an observer that only updates when the new value is different', async () => {
-                return new Promise((resolve, reject) => {
+                return new Promise<void>((resolve, reject) => {
                     let count: number = 0
                     let updateCount: number = 0
 
@@ -164,7 +164,7 @@ describe('KvStore', () => {
             })
 
             it('should return an observer that performs retries for errors', async () => {
-                return new Promise((resolve, reject) => {
+                return new Promise<void>((resolve, reject) => {
                     let count: number = 0
 
                     client
@@ -306,7 +306,7 @@ describe('KvStore', () => {
                     },
                     (err: any) => {
                         expect(err.message).to.equal(
-                            'Error: connect ECONNREFUSED 127.0.0.1:9500',
+                            'connect ECONNREFUSED 127.0.0.1:9500',
                         )
                     },
                 )
@@ -321,7 +321,7 @@ describe('KvStore', () => {
                     },
                     (err: any) => {
                         expect(err.message).to.equal(
-                            'Error: connect ECONNREFUSED 127.0.0.1:9500',
+                            'connect ECONNREFUSED 127.0.0.1:9500',
                         )
                     },
                 )
@@ -336,7 +336,7 @@ describe('KvStore', () => {
                     },
                     (err: any) => {
                         expect(err.message).to.equal(
-                            'Error: connect ECONNREFUSED 127.0.0.1:9500',
+                            'connect ECONNREFUSED 127.0.0.1:9500',
                         )
                     },
                 )
@@ -352,7 +352,7 @@ describe('KvStore', () => {
                     })
                     .onError((err) => {
                         expect(err.message).to.equal(
-                            'Error: connect ECONNREFUSED 127.0.0.1:9500',
+                            'connect ECONNREFUSED 127.0.0.1:9500',
                         )
                     })
             })

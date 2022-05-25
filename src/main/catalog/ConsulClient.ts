@@ -1,5 +1,6 @@
-import { CoreOptions, RequestResponse } from 'request'
-import * as rpn from 'request-promise-native'
+import { OptionsOfJSONResponseBody, Response } from 'got'
+
+import got from 'got'
 
 import { CatalogRequest, CatalogRequestType } from './types'
 
@@ -7,67 +8,77 @@ import { cleanQueryParams, deepMerge, headersForRequest } from '../utils'
 
 import { BaseClient } from '../BaseClient'
 
-const request = rpn.defaults({
-    json: true,
-    simple: false,
-    resolveWithFullResponse: true,
-})
-
 export class ConsulClient extends BaseClient<CatalogRequest> {
     protected processRequest(
         req: CatalogRequest,
-        options: CoreOptions = {},
-    ): Promise<RequestResponse> {
+        options: OptionsOfJSONResponseBody = {
+            responseType: 'json',
+        },
+    ): Promise<Response> {
         switch (req.type) {
             case CatalogRequestType.RegisterEntityRequest:
-                return request(
-                    deepMerge(options, {
-                        uri: `${this.getPathForRequest(req)}/register`,
-                        body: req.paylaod,
-                        method: 'PUT',
-                        headers: headersForRequest(req),
-                        qs: cleanQueryParams({
-                            dc: req.dc,
-                            index: req.index,
-                        }),
-                    }),
-                ).promise()
-
+                return new Promise(async (resolve, reject) => {
+                    try {
+                        const response = await got(
+                            `${this.getPathForRequest(req)}/register`,
+                            deepMerge(options, {
+                                body: Buffer.from(JSON.stringify(req.paylaod)),
+                                method: 'PUT',
+                                headers: headersForRequest(req),
+                                searchParams: cleanQueryParams({
+                                    dc: req.dc,
+                                    index: req.index,
+                                }),
+                            }),
+                        )
+                        resolve(response)
+                    } catch (err) {
+                        reject(err)
+                    }
+                })
             case CatalogRequestType.ListNodesRequest:
-                return request(
-                    deepMerge(options, {
-                        uri: `${this.getPathForRequest(req)}/nodes`,
-                        method: 'GET',
-                        headers: headersForRequest(req),
-                        qs: cleanQueryParams({
-                            dc: req.dc,
-                            index: req.index,
-                        }),
-                    }),
-                ).promise()
-
+                return new Promise(async (resolve, reject) => {
+                    try {
+                        const response = await got(
+                            `${this.getPathForRequest(req)}/nodes`,
+                            deepMerge(options, {
+                                method: 'GET',
+                                headers: headersForRequest(req),
+                                searchParams: cleanQueryParams({
+                                    dc: req.dc,
+                                    index: req.index,
+                                }),
+                            }),
+                        )
+                        resolve(response)
+                    } catch (err) {
+                        reject(err)
+                    }
+                })
             case CatalogRequestType.ListServicesRequest:
-                return request(
-                    deepMerge(options, {
-                        uri: `${this.getPathForRequest(req)}/services`,
-                        method: 'GET',
-                        headers: headersForRequest(req),
-                        qs: cleanQueryParams({
-                            dc: req.dc,
-                            index: req.index,
-                        }),
-                    }),
-                ).promise()
-
+                return new Promise(async (resolve, reject) => {
+                    try {
+                        const response = await got(
+                            `${this.getPathForRequest(req)}/services`,
+                            deepMerge(options, {
+                                method: 'GET',
+                                headers: headersForRequest(req),
+                                searchParams: cleanQueryParams({
+                                    dc: req.dc,
+                                    index: req.index,
+                                }),
+                            }),
+                        )
+                        resolve(response)
+                    } catch (err) {
+                        reject(err)
+                    }
+                })
             case CatalogRequestType.ListServiceNodesRequest:
-                const uri = `${this.getHealthPathForRequest(req)}/service/${
-                    req.serviceName
-                }`
                 const newOptions = deepMerge(options, {
-                    uri,
                     method: 'GET',
                     headers: headersForRequest(req),
-                    qs: cleanQueryParams({
+                    searchParams: cleanQueryParams({
                         dc: req.dc,
                         index: req.index,
                         passing: true,
@@ -75,8 +86,19 @@ export class ConsulClient extends BaseClient<CatalogRequest> {
                         stale: '',
                     }),
                 })
-                return request(newOptions).promise()
-
+                return new Promise(async (resolve, reject) => {
+                    try {
+                        const response = await got(
+                            `${this.getHealthPathForRequest(req)}/service/${
+                                req.serviceName
+                            }`,
+                            newOptions,
+                        )
+                        resolve(response)
+                    } catch (err) {
+                        reject(err)
+                    }
+                })
             default:
                 const msg: any = req
                 return Promise.reject(

@@ -1,4 +1,4 @@
-import { CoreOptions, RequestResponse } from 'request'
+import { OptionsOfJSONResponseBody, Response } from 'got'
 import { DEFAULT_HOST } from './constants'
 import { ensureProtocol, removeLeadingTrailingSlash } from './utils'
 
@@ -22,8 +22,10 @@ export abstract class BaseClient<ConsulRequest>
 
     public send(
         req: ConsulRequest,
-        options: CoreOptions = {},
-    ): Promise<RequestResponse> {
+        options: OptionsOfJSONResponseBody = {
+            responseType: 'json',
+        },
+    ): Promise<Response> {
         const dest: string = this.currentDestination
         return this.processRequest(req, options).catch((err: any) =>
             this.runRetry(req, options, dest, err),
@@ -32,10 +34,12 @@ export abstract class BaseClient<ConsulRequest>
 
     protected runRetry(
         req: ConsulRequest,
-        options: CoreOptions,
+        options: OptionsOfJSONResponseBody = {
+            responseType: 'json',
+        },
         dest: string,
         err: any,
-    ): Promise<RequestResponse> {
+    ): Promise<Response> {
         return new Promise((resolve, reject) => {
             if (
                 this.currentIndex < this.destinations.length - 1 ||
@@ -64,8 +68,8 @@ export abstract class BaseClient<ConsulRequest>
 
     protected abstract processRequest(
         req: ConsulRequest,
-        options?: CoreOptions,
-    ): Promise<RequestResponse>
+        options?: OptionsOfJSONResponseBody,
+    ): Promise<Response>
 
     protected abstract getPathForRequest(req: ConsulRequest): string
 }
