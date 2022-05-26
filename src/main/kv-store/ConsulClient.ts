@@ -1,4 +1,4 @@
-import { OptionsOfJSONResponseBody, Response } from 'got'
+import { HTTPError, OptionsOfJSONResponseBody, Response } from 'got'
 
 import got from 'got'
 
@@ -12,6 +12,8 @@ import {
 } from '../utils'
 
 import { BaseClient } from '../BaseClient'
+
+import * as logger from '../logger'
 export class ConsulClient extends BaseClient<KVRequest> {
     protected processRequest(
         req: KVRequest,
@@ -36,7 +38,17 @@ export class ConsulClient extends BaseClient<KVRequest> {
                         )
                         resolve(response)
                     } catch (err) {
-                        reject(err)
+                        if (err instanceof HTTPError) {
+                            // Allow non 2xx/3xx responses to resolve upstream
+                            resolve(err.response)
+                        } else {
+                            logger.error(
+                                `Unexpected error on GET: ${
+                                    err instanceof Error ? err.message : err
+                                }`,
+                            )
+                            reject(err)
+                        }
                     }
                 })
             case RequestType.UpdateRequest:
@@ -55,7 +67,17 @@ export class ConsulClient extends BaseClient<KVRequest> {
                         )
                         resolve(response)
                     } catch (err) {
-                        reject(err)
+                        if (err instanceof HTTPError) {
+                            // Allow non 2xx/3xx responses to resolve upstream
+                            resolve(err.response)
+                        } else {
+                            logger.error(
+                                `Unexpected error on PUT: ${
+                                    err instanceof Error ? err.message : err
+                                }`,
+                            )
+                            reject(err)
+                        }
                     }
                 })
             case RequestType.DeleteRequest:
@@ -73,7 +95,17 @@ export class ConsulClient extends BaseClient<KVRequest> {
                         )
                         resolve(response)
                     } catch (err) {
-                        reject(err)
+                        if (err instanceof HTTPError) {
+                            // Allow non 2xx/3xx responses to resolve upstream
+                            resolve(err.response)
+                        } else {
+                            logger.error(
+                                `Unexpected error on DELETE: ${
+                                    err instanceof Error ? err.message : err
+                                }`,
+                            )
+                            reject(err)
+                        }
                     }
                 })
             default:

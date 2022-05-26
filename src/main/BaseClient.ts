@@ -34,9 +34,7 @@ export abstract class BaseClient<ConsulRequest>
 
     protected runRetry(
         req: ConsulRequest,
-        options: OptionsOfJSONResponseBody = {
-            responseType: 'json',
-        },
+        options: OptionsOfJSONResponseBody,
         dest: string,
         err: any,
     ): Promise<Response> {
