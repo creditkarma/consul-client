@@ -38,17 +38,12 @@ export class ConsulClient extends BaseClient<KVRequest> {
                         )
                         resolve(response)
                     } catch (err) {
-                        if (err instanceof HTTPError) {
-                            // Allow non 2xx/3xx responses to resolve upstream
-                            resolve(err.response)
-                        } else {
-                            logger.error(
-                                `Unexpected error on GET: ${
-                                    err instanceof Error ? err.message : err
-                                }`,
-                            )
-                            reject(err)
-                        }
+                        this.handleErrorResponseForMethod(
+                            err,
+                            'GET',
+                            resolve,
+                            reject,
+                        )
                     }
                 })
             case RequestType.UpdateRequest:
@@ -67,17 +62,12 @@ export class ConsulClient extends BaseClient<KVRequest> {
                         )
                         resolve(response)
                     } catch (err) {
-                        if (err instanceof HTTPError) {
-                            // Allow non 2xx/3xx responses to resolve upstream
-                            resolve(err.response)
-                        } else {
-                            logger.error(
-                                `Unexpected error on PUT: ${
-                                    err instanceof Error ? err.message : err
-                                }`,
-                            )
-                            reject(err)
-                        }
+                        this.handleErrorResponseForMethod(
+                            err,
+                            'PUT',
+                            resolve,
+                            reject,
+                        )
                     }
                 })
             case RequestType.DeleteRequest:
@@ -95,17 +85,12 @@ export class ConsulClient extends BaseClient<KVRequest> {
                         )
                         resolve(response)
                     } catch (err) {
-                        if (err instanceof HTTPError) {
-                            // Allow non 2xx/3xx responses to resolve upstream
-                            resolve(err.response)
-                        } else {
-                            logger.error(
-                                `Unexpected error on DELETE: ${
-                                    err instanceof Error ? err.message : err
-                                }`,
-                            )
-                            reject(err)
-                        }
+                        this.handleErrorResponseForMethod(
+                            err,
+                            'DELETE',
+                            resolve,
+                            reject,
+                        )
                     }
                 })
             default:
@@ -118,5 +103,26 @@ export class ConsulClient extends BaseClient<KVRequest> {
 
     protected getPathForRequest(req: KVRequest): string {
         return `${this.currentDestination}/${requestToPath(req)}`
+    }
+
+    protected handleErrorResponseForMethod(
+        err: unknown,
+        method: string,
+        resolve: (
+            value: Response<unknown> | PromiseLike<Response<unknown>>,
+        ) => void,
+        reject: (reason?: any) => void,
+    ) {
+        if (err instanceof HTTPError) {
+            // Allow non 2xx/3xx responses to resolve upstream
+            resolve(err.response)
+        } else {
+            logger.error(
+                `Unexpected error on ${method}: ${
+                    err instanceof Error ? err.message : err
+                }`,
+            )
+            reject(err)
+        }
     }
 }

@@ -34,17 +34,12 @@ export class ConsulClient extends BaseClient<CatalogRequest> {
                         )
                         resolve(response)
                     } catch (err) {
-                        if (err instanceof HTTPError) {
-                            // Allow non 2xx/3xx responses to resolve upstream
-                            resolve(err.response)
-                        } else {
-                            logger.error(
-                                `Unexpected error on PUT: ${
-                                    err instanceof Error ? err.message : err
-                                }`,
-                            )
-                            reject(err)
-                        }
+                        this.handleErrorResponseForMethod(
+                            err,
+                            'PUT',
+                            resolve,
+                            reject,
+                        )
                     }
                 })
             case CatalogRequestType.ListNodesRequest:
@@ -63,17 +58,12 @@ export class ConsulClient extends BaseClient<CatalogRequest> {
                         )
                         resolve(response)
                     } catch (err) {
-                        if (err instanceof HTTPError) {
-                            // Allow non 2xx/3xx responses to resolve upstream
-                            resolve(err.response)
-                        } else {
-                            logger.error(
-                                `Unexpected error on GET: ${
-                                    err instanceof Error ? err.message : err
-                                }`,
-                            )
-                            reject(err)
-                        }
+                        this.handleErrorResponseForMethod(
+                            err,
+                            'GET',
+                            resolve,
+                            reject,
+                        )
                     }
                 })
             case CatalogRequestType.ListServicesRequest:
@@ -92,17 +82,12 @@ export class ConsulClient extends BaseClient<CatalogRequest> {
                         )
                         resolve(response)
                     } catch (err) {
-                        if (err instanceof HTTPError) {
-                            // Allow non 2xx/3xx responses to resolve upstream
-                            resolve(err.response)
-                        } else {
-                            logger.error(
-                                `Unexpected error on GET: ${
-                                    err instanceof Error ? err.message : err
-                                }`,
-                            )
-                            reject(err)
-                        }
+                        this.handleErrorResponseForMethod(
+                            err,
+                            'GET',
+                            resolve,
+                            reject,
+                        )
                     }
                 })
             case CatalogRequestType.ListServiceNodesRequest:
@@ -127,17 +112,12 @@ export class ConsulClient extends BaseClient<CatalogRequest> {
                         )
                         resolve(response)
                     } catch (err) {
-                        if (err instanceof HTTPError) {
-                            // Allow non 2xx/3xx responses to resolve upstream
-                            resolve(err.response)
-                        } else {
-                            logger.error(
-                                `Unexpected error on GET: ${
-                                    err instanceof Error ? err.message : err
-                                }`,
-                            )
-                            reject(err)
-                        }
+                        this.handleErrorResponseForMethod(
+                            err,
+                            'GET',
+                            resolve,
+                            reject,
+                        )
                     }
                 })
             default:
@@ -154,5 +134,26 @@ export class ConsulClient extends BaseClient<CatalogRequest> {
 
     protected getPathForRequest(req: CatalogRequest): string {
         return `${this.currentDestination}/${req.apiVersion}/${req.section}`
+    }
+
+    protected handleErrorResponseForMethod(
+        err: unknown,
+        method: string,
+        resolve: (
+            value: Response<unknown> | PromiseLike<Response<unknown>>,
+        ) => void,
+        reject: (reason?: any) => void,
+    ) {
+        if (err instanceof HTTPError) {
+            // Allow non 2xx/3xx responses to resolve upstream
+            resolve(err.response)
+        } else {
+            logger.error(
+                `Unexpected error on ${method}: ${
+                    err instanceof Error ? err.message : err
+                }`,
+            )
+            reject(err)
+        }
     }
 }
