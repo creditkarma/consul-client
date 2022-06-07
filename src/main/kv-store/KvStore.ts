@@ -66,9 +66,8 @@ export class KvStore {
             .then((res: Response) => {
                 switch (res.statusCode) {
                     case 200:
-                        const metadata: Array<IConsulMetadata> = res.body as Array<
-                            IConsulMetadata
-                        >
+                        const metadata: Array<IConsulMetadata> =
+                            res.body as Array<IConsulMetadata>
                         return Promise.resolve(
                             Utils.decodeBase64(metadata[0].Value) as T,
                         )
@@ -112,9 +111,8 @@ export class KvStore {
                         if (this.watchMap.has(key.path)) {
                             switch (res.statusCode) {
                                 case 200:
-                                    const metadata: Array<IConsulMetadata> = res.body as Array<
-                                        IConsulMetadata
-                                    >
+                                    const metadata: Array<IConsulMetadata> =
+                                        res.body as Array<IConsulMetadata>
                                     const modifyIndex: number =
                                         metadata[0].ModifyIndex
                                     numRetries = 0

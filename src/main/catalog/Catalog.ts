@@ -201,9 +201,8 @@ export class Catalog {
     }
 
     public ignoreAddress(serviceName: string): void {
-        const observer: Observer<string> | undefined = this.watchMap.get(
-            serviceName,
-        )
+        const observer: Observer<string> | undefined =
+            this.watchMap.get(serviceName)
         if (observer !== undefined) {
             observer.destroy()
             this.watchMap.delete(serviceName)
@@ -245,9 +244,8 @@ export class Catalog {
                         if (this.watchMap.has(serviceName)) {
                             switch (res.statusCode) {
                                 case 200:
-                                    const metadata: Array<IServiceHealthDescription> = res.body as Array<
-                                        IServiceHealthDescription
-                                    >
+                                    const metadata: Array<IServiceHealthDescription> =
+                                        res.body as Array<IServiceHealthDescription>
                                     // Pick a random service from the list of healthy services
                                     const ID = Math.floor(
                                         Math.random() * metadata.length,

@@ -8,7 +8,8 @@ import { IConsulClient } from './types'
 const RETRY_INTERVAL: number = 1000
 
 export abstract class BaseClient<ConsulRequest>
-    implements IConsulClient<ConsulRequest> {
+    implements IConsulClient<ConsulRequest>
+{
     protected destinations: Array<string>
     protected currentDestination: string
     protected currentIndex: number = 0
@@ -49,9 +50,8 @@ export abstract class BaseClient<ConsulRequest>
 
                 if (dest === this.currentDestination) {
                     this.currentIndex += 1
-                    this.currentDestination = this.destinations[
-                        this.currentIndex
-                    ]
+                    this.currentDestination =
+                        this.destinations[this.currentIndex]
                 }
 
                 setTimeout(() => {
