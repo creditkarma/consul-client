@@ -50,7 +50,7 @@ export class Catalog {
                     type: CatalogRequestType.RegisterEntityRequest,
                     apiVersion: 'v1',
                     section: 'catalog',
-                    paylaod: service,
+                    payload: service,
                 },
                 extendedOptions,
             )

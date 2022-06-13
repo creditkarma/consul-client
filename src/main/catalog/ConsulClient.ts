@@ -20,7 +20,7 @@ export class ConsulClient extends BaseClient<CatalogRequest> {
                     return await got(
                         `${this.getPathForRequest(req)}/register`,
                         deepMerge(options, {
-                            body: Buffer.from(JSON.stringify(req.paylaod)),
+                            body: Buffer.from(JSON.stringify(req.payload)),
                             method: 'PUT',
                             headers: headersForRequest(req),
                             searchParams: cleanQueryParams({
