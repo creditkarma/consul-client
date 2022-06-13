@@ -23,9 +23,7 @@ export abstract class BaseClient<ConsulRequest>
 
     public send(
         req: ConsulRequest,
-        options: OptionsOfJSONResponseBody = {
-            responseType: 'json',
-        },
+        options: OptionsOfJSONResponseBody = {},
     ): Promise<Response> {
         const dest: string = this.currentDestination
         return this.processRequest(req, options).catch((err: any) =>

@@ -121,7 +121,7 @@ export function headersForRequest(req: KVRequest | CatalogRequest): IHeaderMap {
     }
 
     if (req.index !== undefined) {
-        headers[CONSUL_INDEX_HEADER] = req.index + 1
+        headers[CONSUL_INDEX_HEADER] = (req.index + 1).toString()
     }
 
     if ((req as KVRequest).token) {

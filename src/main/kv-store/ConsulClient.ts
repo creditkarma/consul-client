@@ -15,114 +15,72 @@ import { BaseClient } from '../BaseClient'
 
 import * as logger from '../logger'
 export class ConsulClient extends BaseClient<KVRequest> {
-    protected processRequest(
+    protected async processRequest(
         req: KVRequest,
-        options: OptionsOfJSONResponseBody = {
-            responseType: 'json',
-        },
+        options: OptionsOfJSONResponseBody = {},
     ): Promise<Response> {
-        switch (req.type) {
-            case RequestType.GetRequest:
-                return new Promise(async (resolve, reject) => {
-                    try {
-                        const response = await got(
-                            this.getPathForRequest(req),
-                            deepMerge(options, {
-                                method: 'GET',
-                                headers: headersForRequest(req),
-                                searchParams: cleanQueryParams({
-                                    dc: req.key.dc,
-                                    index: req.index,
-                                }),
+        try {
+            switch (req.type) {
+                case RequestType.GetRequest:
+                    return await got(
+                        this.getPathForRequest(req),
+                        deepMerge(options, {
+                            method: 'GET',
+                            headers: headersForRequest(req),
+                            searchParams: cleanQueryParams({
+                                dc: req.key.dc,
+                                index: req.index,
                             }),
-                        )
-                        resolve(response)
-                    } catch (err) {
-                        this.handleErrorResponseForMethod(
-                            err,
-                            'GET',
-                            resolve,
-                            reject,
-                        )
-                    }
-                })
-            case RequestType.UpdateRequest:
-                return new Promise(async (resolve, reject) => {
-                    try {
-                        const response = await got(
-                            this.getPathForRequest(req),
-                            deepMerge(options, {
-                                body: Buffer.from(JSON.stringify(req.value)),
-                                method: 'PUT',
-                                headers: headersForRequest(req),
-                                searchParams: cleanQueryParams({
-                                    dc: req.key.dc,
-                                }),
+                            responseType: 'json',
+                        }),
+                    )
+                case RequestType.UpdateRequest:
+                    return await got(
+                        this.getPathForRequest(req),
+                        deepMerge(options, {
+                            body: Buffer.from(JSON.stringify(req.value)),
+                            method: 'PUT',
+                            headers: headersForRequest(req),
+                            searchParams: cleanQueryParams({
+                                dc: req.key.dc,
                             }),
-                        )
-                        resolve(response)
-                    } catch (err) {
-                        this.handleErrorResponseForMethod(
-                            err,
-                            'PUT',
-                            resolve,
-                            reject,
-                        )
-                    }
-                })
-            case RequestType.DeleteRequest:
-                return new Promise(async (resolve, reject) => {
-                    try {
-                        const response = await got(
-                            this.getPathForRequest(req),
-                            deepMerge(options, {
-                                method: 'DELETE',
-                                headers: headersForRequest(req),
-                                searchParams: cleanQueryParams({
-                                    dc: req.key.dc,
-                                }),
+                            responseType: 'json',
+                        }),
+                    )
+                case RequestType.DeleteRequest:
+                    return await got(
+                        this.getPathForRequest(req),
+                        deepMerge(options, {
+                            method: 'DELETE',
+                            headers: headersForRequest(req),
+                            searchParams: cleanQueryParams({
+                                dc: req.key.dc,
                             }),
-                        )
-                        resolve(response)
-                    } catch (err) {
-                        this.handleErrorResponseForMethod(
-                            err,
-                            'DELETE',
-                            resolve,
-                            reject,
-                        )
-                    }
-                })
-            default:
-                const msg: never = req
-                return Promise.reject(
-                    new Error(`Unsupported request type: ${msg}`),
+                            responseType: 'json',
+                        }),
+                    )
+                default:
+                    const msg: never = req
+                    return Promise.reject(
+                        new Error(`Unsupported request type: ${msg}`),
+                    )
+            }
+        } catch (err) {
+            if (err instanceof HTTPError) {
+                // Allow non 2xx/3xx responses to resolve upstream
+                return err.response
+            } else {
+                logger.error(
+                    `Unexpected error on ${req.type}: ${
+                        err instanceof Error ? err.message : err
+                    }`,
                 )
+                throw err
+            }
         }
     }
 
     protected getPathForRequest(req: KVRequest): string {
         return `${this.currentDestination}/${requestToPath(req)}`
-    }
-
-    protected handleErrorResponseForMethod(
-        err: unknown,
-        method: string,
-        resolve: (
-            value: Response<unknown> | PromiseLike<Response<unknown>>,
-        ) => void,
-        reject: (reason?: any) => void,
-    ) {
-        if (err instanceof HTTPError) {
-            // Allow non 2xx/3xx responses to resolve upstream
-            resolve(err.response)
-        } else {
-            logger.error(
-                `Unexpected error on ${method}: ${
-                    err instanceof Error ? err.message : err
-                }`,
-            )
-            reject(err)
-        }
     }
 }

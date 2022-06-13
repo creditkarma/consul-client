@@ -23,13 +23,14 @@ export class Catalog {
 
     constructor(
         consulAddresses: Array<string> = Utils.defaultAddresses(),
-        baseOptions: OptionsOfJSONResponseBody = {
-            responseType: 'json',
-        },
+        baseOptions: OptionsOfJSONResponseBody = {},
         maxRetries: number = 5,
     ) {
         this.consulAddresses = consulAddresses
-        this.baseOptions = baseOptions
+        this.baseOptions = {
+            responseType: 'json',
+            ...baseOptions,
+        }
         this.client = new ConsulClient(this.consulAddresses)
         this.watchMap = new Map()
         this.maxRetries = maxRetries
@@ -37,9 +38,7 @@ export class Catalog {
 
     public registerEntity(
         service: IRegisterEntityPayload,
-        requestOptions: OptionsOfJSONResponseBody = {
-            responseType: 'json',
-        },
+        requestOptions: OptionsOfJSONResponseBody = {},
     ): Promise<boolean> {
         const extendedOptions = Utils.deepMerge(
             this.baseOptions,
@@ -67,9 +66,7 @@ export class Catalog {
     }
 
     public listNodes(
-        requestOptions: OptionsOfJSONResponseBody = {
-            responseType: 'json',
-        },
+        requestOptions: OptionsOfJSONResponseBody = {},
     ): Promise<Array<INodeDescription>> {
         const extendedOptions = Utils.deepMerge(
             this.baseOptions,
@@ -98,9 +95,7 @@ export class Catalog {
     }
 
     public listServices(
-        requestOptions: OptionsOfJSONResponseBody = {
-            responseType: 'json',
-        },
+        requestOptions: OptionsOfJSONResponseBody = {},
     ): Promise<IServiceMap> {
         const extendedOptions = Utils.deepMerge(
             this.baseOptions,
@@ -128,9 +123,7 @@ export class Catalog {
 
     public listNodesForService(
         serviceName: string,
-        requestOptions: OptionsOfJSONResponseBody = {
-            responseType: 'json',
-        },
+        requestOptions: OptionsOfJSONResponseBody = {},
     ): Promise<Array<IServiceHealthDescription>> {
         const extendedOptions = Utils.deepMerge(
             this.baseOptions,
@@ -169,9 +162,7 @@ export class Catalog {
 
     public resolveAddress(
         serviceName: string,
-        requestOptions: OptionsOfJSONResponseBody = {
-            responseType: 'json',
-        },
+        requestOptions: OptionsOfJSONResponseBody = {},
     ): Promise<string> {
         return this.listNodesForService(serviceName, requestOptions).then(
             (res: Array<IServiceHealthDescription>) => {
@@ -211,9 +202,7 @@ export class Catalog {
 
     public watchAddress(
         serviceName: string,
-        requestOptions: OptionsOfJSONResponseBody = {
-            responseType: 'json',
-        },
+        requestOptions: OptionsOfJSONResponseBody = {},
     ): Observer<string> {
         const extendedOptions = Utils.deepMerge(
             this.baseOptions,

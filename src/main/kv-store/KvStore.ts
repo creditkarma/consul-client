@@ -24,13 +24,14 @@ export class KvStore {
 
     constructor(
         consulAddresses: Array<string> = Utils.defaultAddresses(),
-        baseOptions: OptionsOfJSONResponseBody = {
-            responseType: 'json',
-        },
+        baseOptions: OptionsOfJSONResponseBody = {},
         maxRetries: number = 5,
     ) {
         this.consulAddresses = consulAddresses
-        this.baseOptions = baseOptions
+        this.baseOptions = {
+            responseType: 'json',
+            ...baseOptions,
+        }
         this.client = new ConsulClient(this.consulAddresses)
         this.watchMap = new Map()
         this.maxRetries = maxRetries
@@ -53,9 +54,7 @@ export class KvStore {
      */
     public get<T>(
         key: IKey,
-        requestOptions: OptionsOfJSONResponseBody = {
-            responseType: 'json',
-        },
+        requestOptions: OptionsOfJSONResponseBody = {},
     ): Promise<T | null> {
         const extendedOptions = Utils.deepMerge(
             this.baseOptions,
@@ -93,9 +92,7 @@ export class KvStore {
 
     public watch<T>(
         key: IKey,
-        requestOptions: OptionsOfJSONResponseBody = {
-            responseType: 'json',
-        },
+        requestOptions: OptionsOfJSONResponseBody = {},
     ): Observer<T> {
         const extendedOptions = Utils.deepMerge(
             this.baseOptions,
@@ -187,9 +184,7 @@ export class KvStore {
     public set(
         key: IKey,
         value: any,
-        requestOptions: OptionsOfJSONResponseBody = {
-            responseType: 'json',
-        },
+        requestOptions: OptionsOfJSONResponseBody = {},
     ): Promise<boolean> {
         const extendedOptions = Utils.deepMerge(
             this.baseOptions,
@@ -213,9 +208,7 @@ export class KvStore {
 
     public delete(
         key: IKey,
-        requestOptions: OptionsOfJSONResponseBody = {
-            responseType: 'json',
-        },
+        requestOptions: OptionsOfJSONResponseBody = {},
     ): Promise<boolean> {
         const extendedOptions = Utils.deepMerge(
             this.baseOptions,

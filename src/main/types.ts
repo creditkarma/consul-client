@@ -11,7 +11,7 @@ export interface IQueryMap {
 }
 
 export interface IHeaderMap {
-    [key: string]: string | number | undefined
+    [key: string]: string | undefined
 }
 
 export interface IConsulClient<ConsulRequest> {

@@ -10,121 +10,89 @@ import { BaseClient } from '../BaseClient'
 
 import * as logger from '../logger'
 export class ConsulClient extends BaseClient<CatalogRequest> {
-    protected processRequest(
+    protected async processRequest(
         req: CatalogRequest,
-        options: OptionsOfJSONResponseBody = {
-            responseType: 'json',
-        },
+        options: OptionsOfJSONResponseBody = {},
     ): Promise<Response> {
-        switch (req.type) {
-            case CatalogRequestType.RegisterEntityRequest:
-                return new Promise(async (resolve, reject) => {
-                    try {
-                        const response = await got(
-                            `${this.getPathForRequest(req)}/register`,
-                            deepMerge(options, {
-                                body: Buffer.from(JSON.stringify(req.paylaod)),
-                                method: 'PUT',
-                                headers: headersForRequest(req),
-                                searchParams: cleanQueryParams({
-                                    dc: req.dc,
-                                    index: req.index,
-                                }),
+        try {
+            switch (req.type) {
+                case CatalogRequestType.RegisterEntityRequest:
+                    return await got(
+                        `${this.getPathForRequest(req)}/register`,
+                        deepMerge(options, {
+                            body: Buffer.from(JSON.stringify(req.paylaod)),
+                            method: 'PUT',
+                            headers: headersForRequest(req),
+                            searchParams: cleanQueryParams({
+                                dc: req.dc,
+                                index: req.index,
                             }),
-                        )
-                        resolve(response)
-                    } catch (err) {
-                        this.handleErrorResponseForMethod(
-                            err,
-                            'PUT',
-                            resolve,
-                            reject,
-                        )
-                    }
-                })
-            case CatalogRequestType.ListNodesRequest:
-                return new Promise(async (resolve, reject) => {
-                    try {
-                        const response = await got(
-                            `${this.getPathForRequest(req)}/nodes`,
-                            deepMerge(options, {
-                                method: 'GET',
-                                headers: headersForRequest(req),
-                                searchParams: cleanQueryParams({
-                                    dc: req.dc,
-                                    index: req.index,
-                                }),
+                            responseType: 'json',
+                        }),
+                    )
+                case CatalogRequestType.ListNodesRequest:
+                    return await got(
+                        `${this.getPathForRequest(req)}/nodes`,
+                        deepMerge(options, {
+                            method: 'GET',
+                            headers: headersForRequest(req),
+                            searchParams: cleanQueryParams({
+                                dc: req.dc,
+                                index: req.index,
                             }),
-                        )
-                        resolve(response)
-                    } catch (err) {
-                        this.handleErrorResponseForMethod(
-                            err,
-                            'GET',
-                            resolve,
-                            reject,
-                        )
-                    }
-                })
-            case CatalogRequestType.ListServicesRequest:
-                return new Promise(async (resolve, reject) => {
-                    try {
-                        const response = await got(
-                            `${this.getPathForRequest(req)}/services`,
-                            deepMerge(options, {
-                                method: 'GET',
-                                headers: headersForRequest(req),
-                                searchParams: cleanQueryParams({
-                                    dc: req.dc,
-                                    index: req.index,
-                                }),
+                            responseType: 'json',
+                        }),
+                    )
+                case CatalogRequestType.ListServicesRequest:
+                    return await got(
+                        `${this.getPathForRequest(req)}/services`,
+                        deepMerge(options, {
+                            method: 'GET',
+                            headers: headersForRequest(req),
+                            searchParams: cleanQueryParams({
+                                dc: req.dc,
+                                index: req.index,
                             }),
-                        )
-                        resolve(response)
-                    } catch (err) {
-                        this.handleErrorResponseForMethod(
-                            err,
-                            'GET',
-                            resolve,
-                            reject,
-                        )
-                    }
-                })
-            case CatalogRequestType.ListServiceNodesRequest:
-                const newOptions = deepMerge(options, {
-                    method: 'GET',
-                    headers: headersForRequest(req),
-                    searchParams: cleanQueryParams({
-                        dc: req.dc,
-                        index: req.index,
-                        passing: true,
-                        wait: '55s',
-                        stale: '',
-                    }),
-                })
-                return new Promise(async (resolve, reject) => {
-                    try {
-                        const response = await got(
-                            `${this.getHealthPathForRequest(req)}/service/${
-                                req.serviceName
-                            }`,
-                            newOptions,
-                        )
-                        resolve(response)
-                    } catch (err) {
-                        this.handleErrorResponseForMethod(
-                            err,
-                            'GET',
-                            resolve,
-                            reject,
-                        )
-                    }
-                })
-            default:
-                const msg: any = req
-                return Promise.reject(
-                    new Error(`Unsupported request type: ${msg}`),
+                            responseType: 'json',
+                        }),
+                    )
+                case CatalogRequestType.ListServiceNodesRequest:
+                    const newOptions = deepMerge(options, {
+                        method: 'GET',
+                        headers: headersForRequest(req),
+                        searchParams: cleanQueryParams({
+                            dc: req.dc,
+                            index: req.index,
+                            passing: true,
+                            wait: '55s',
+                            stale: '',
+                        }),
+                        responseType: 'json',
+                    })
+                    return await got(
+                        `${this.getHealthPathForRequest(req)}/service/${
+                            req.serviceName
+                        }`,
+                        newOptions,
+                    )
+                default:
+                    const msg: any = req
+                    return Promise.reject(
+                        new Error(`Unsupported request type: ${msg}`),
+                    )
+            }
+        } catch (err) {
+            if (err instanceof HTTPError) {
+                // Allow non 2xx/3xx responses to resolve upstream
+                return err.response
+            } else {
+                logger.error(
+                    `Unexpected error on ${req.type}: ${
+                        err instanceof Error ? err.message : err
+                    }`,
                 )
+                throw err
+            }
         }
     }
 
@@ -134,26 +102,5 @@ export class ConsulClient extends BaseClient<CatalogRequest> {
 
     protected getPathForRequest(req: CatalogRequest): string {
         return `${this.currentDestination}/${req.apiVersion}/${req.section}`
-    }
-
-    protected handleErrorResponseForMethod(
-        err: unknown,
-        method: string,
-        resolve: (
-            value: Response<unknown> | PromiseLike<Response<unknown>>,
-        ) => void,
-        reject: (reason?: any) => void,
-    ) {
-        if (err instanceof HTTPError) {
-            // Allow non 2xx/3xx responses to resolve upstream
-            resolve(err.response)
-        } else {
-            logger.error(
-                `Unexpected error on ${method}: ${
-                    err instanceof Error ? err.message : err
-                }`,
-            )
-            reject(err)
-        }
     }
 }
