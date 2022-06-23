@@ -20,7 +20,7 @@ describe('Observer', () => {
 
     describe('onValue', () => {
         it('should alert callback if Observer has value', async () => {
-            return new Promise((resolve, reject) => {
+            return new Promise<void>((resolve, reject) => {
                 const ob: Observer<string> = Observer.create('test')
                 const expected: string = 'test'
 
@@ -32,7 +32,7 @@ describe('Observer', () => {
         })
 
         it('should alert callback when Observer is updated', async () => {
-            return new Promise((resolve, reject) => {
+            return new Promise<void>((resolve, reject) => {
                 const expected: string = 'foo'
                 const ob: Observer<string> = new Observer((sink) => {
                     setTimeout(() => {
@@ -48,7 +48,7 @@ describe('Observer', () => {
         })
 
         it('should alert callback when Observer presents an error', async () => {
-            return new Promise((resolve, reject) => {
+            return new Promise<void>((resolve, reject) => {
                 const expected: string = 'failure'
                 const ob: Observer<string> = new Observer((sink) => {
                     setTimeout(() => {

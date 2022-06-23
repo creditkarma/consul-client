@@ -1,4 +1,4 @@
-import { CoreOptions, RequestResponse } from 'request'
+import { OptionsOfJSONResponseBody, Response } from 'got'
 
 import { ConsulClient } from './ConsulClient'
 
@@ -18,17 +18,20 @@ import * as logger from '../logger'
 export class KvStore {
     private client: ConsulClient
     private consulAddresses: Array<string>
-    private baseOptions: CoreOptions
+    private baseOptions: OptionsOfJSONResponseBody
     private watchMap: Map<string, Observer<any>>
     private maxRetries: number
 
     constructor(
         consulAddresses: Array<string> = Utils.defaultAddresses(),
-        baseOptions: CoreOptions = {},
+        baseOptions: OptionsOfJSONResponseBody = {},
         maxRetries: number = 5,
     ) {
         this.consulAddresses = consulAddresses
-        this.baseOptions = baseOptions
+        this.baseOptions = {
+            responseType: 'json',
+            ...baseOptions,
+        }
         this.client = new ConsulClient(this.consulAddresses)
         this.watchMap = new Map()
         this.maxRetries = maxRetries
@@ -51,7 +54,7 @@ export class KvStore {
      */
     public get<T>(
         key: IKey,
-        requestOptions: CoreOptions = {},
+        requestOptions: OptionsOfJSONResponseBody = {},
     ): Promise<T | null> {
         const extendedOptions = Utils.deepMerge(
             this.baseOptions,
@@ -59,10 +62,11 @@ export class KvStore {
         )
         return this.client
             .send(getRequest({ key }), extendedOptions)
-            .then((res: RequestResponse) => {
+            .then((res: Response) => {
                 switch (res.statusCode) {
                     case 200:
-                        const metadata: Array<IConsulMetadata> = res.body
+                        const metadata: Array<IConsulMetadata> =
+                            res.body as Array<IConsulMetadata>
                         return Promise.resolve(
                             Utils.decodeBase64(metadata[0].Value) as T,
                         )
@@ -86,7 +90,10 @@ export class KvStore {
         }
     }
 
-    public watch<T>(key: IKey, requestOptions: CoreOptions = {}): Observer<T> {
+    public watch<T>(
+        key: IKey,
+        requestOptions: OptionsOfJSONResponseBody = {},
+    ): Observer<T> {
         const extendedOptions = Utils.deepMerge(
             this.baseOptions,
             requestOptions,
@@ -97,12 +104,12 @@ export class KvStore {
             const _watch = (index?: number) => {
                 this.client
                     .send(getRequest({ key, index }), extendedOptions)
-                    .then((res: RequestResponse) => {
+                    .then((res: Response) => {
                         if (this.watchMap.has(key.path)) {
                             switch (res.statusCode) {
                                 case 200:
                                     const metadata: Array<IConsulMetadata> =
-                                        res.body
+                                        res.body as Array<IConsulMetadata>
                                     const modifyIndex: number =
                                         metadata[0].ModifyIndex
                                     numRetries = 0
@@ -177,7 +184,7 @@ export class KvStore {
     public set(
         key: IKey,
         value: any,
-        requestOptions: CoreOptions = {},
+        requestOptions: OptionsOfJSONResponseBody = {},
     ): Promise<boolean> {
         const extendedOptions = Utils.deepMerge(
             this.baseOptions,
@@ -185,7 +192,7 @@ export class KvStore {
         )
         return this.client
             .send(updateRequest({ key, value }), extendedOptions)
-            .then((res: RequestResponse) => {
+            .then((res: Response) => {
                 switch (res.statusCode) {
                     case 200:
                         return Promise.resolve(res.body as boolean)
@@ -201,7 +208,7 @@ export class KvStore {
 
     public delete(
         key: IKey,
-        requestOptions: CoreOptions = {},
+        requestOptions: OptionsOfJSONResponseBody = {},
     ): Promise<boolean> {
         const extendedOptions = Utils.deepMerge(
             this.baseOptions,
@@ -209,7 +216,7 @@ export class KvStore {
         )
         return this.client
             .send(deleteRequest({ key }), extendedOptions)
-            .then((res: RequestResponse) => {
+            .then((res: Response) => {
                 switch (res.statusCode) {
                     case 200:
                         return Promise.resolve(res.body as boolean)

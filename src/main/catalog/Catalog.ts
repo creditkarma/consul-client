@@ -1,4 +1,4 @@
-import { CoreOptions, RequestResponse, Response } from 'request'
+import { OptionsOfJSONResponseBody, Response } from 'got'
 
 import * as logger from '../logger'
 import { Observer, ValueSink } from '../Observer'
@@ -17,17 +17,20 @@ import { IQueryMap } from '../types'
 export class Catalog {
     private client: ConsulClient
     private consulAddresses: Array<string>
-    private baseOptions: CoreOptions
+    private baseOptions: OptionsOfJSONResponseBody
     private watchMap: Map<string, Observer<string>>
     private maxRetries: number
 
     constructor(
         consulAddresses: Array<string> = Utils.defaultAddresses(),
-        baseOptions: CoreOptions = {},
+        baseOptions: OptionsOfJSONResponseBody = {},
         maxRetries: number = 5,
     ) {
         this.consulAddresses = consulAddresses
-        this.baseOptions = baseOptions
+        this.baseOptions = {
+            responseType: 'json',
+            ...baseOptions,
+        }
         this.client = new ConsulClient(this.consulAddresses)
         this.watchMap = new Map()
         this.maxRetries = maxRetries
@@ -35,7 +38,7 @@ export class Catalog {
 
     public registerEntity(
         service: IRegisterEntityPayload,
-        requestOptions: CoreOptions = {},
+        requestOptions: OptionsOfJSONResponseBody = {},
     ): Promise<boolean> {
         const extendedOptions = Utils.deepMerge(
             this.baseOptions,
@@ -47,14 +50,14 @@ export class Catalog {
                     type: CatalogRequestType.RegisterEntityRequest,
                     apiVersion: 'v1',
                     section: 'catalog',
-                    paylaod: service,
+                    payload: service,
                 },
                 extendedOptions,
             )
             .then((res: Response) => {
                 switch (res.statusCode) {
                     case 200:
-                        return Promise.resolve(res.body)
+                        return Promise.resolve(res.body as boolean)
 
                     default:
                         return Promise.reject(new Error(res.statusMessage))
@@ -63,7 +66,7 @@ export class Catalog {
     }
 
     public listNodes(
-        requestOptions: CoreOptions = {},
+        requestOptions: OptionsOfJSONResponseBody = {},
     ): Promise<Array<INodeDescription>> {
         const extendedOptions = Utils.deepMerge(
             this.baseOptions,
@@ -81,7 +84,9 @@ export class Catalog {
             .then((res: Response) => {
                 switch (res.statusCode) {
                     case 200:
-                        return Promise.resolve(res.body)
+                        return Promise.resolve(
+                            res.body as Array<INodeDescription>,
+                        )
 
                     default:
                         return Promise.reject(new Error(res.statusMessage))
@@ -90,7 +95,7 @@ export class Catalog {
     }
 
     public listServices(
-        requestOptions: CoreOptions = {},
+        requestOptions: OptionsOfJSONResponseBody = {},
     ): Promise<IServiceMap> {
         const extendedOptions = Utils.deepMerge(
             this.baseOptions,
@@ -108,7 +113,7 @@ export class Catalog {
             .then((res: Response) => {
                 switch (res.statusCode) {
                     case 200:
-                        return Promise.resolve(res.body)
+                        return Promise.resolve(res.body as IServiceMap)
 
                     default:
                         return Promise.reject(new Error(res.statusMessage))
@@ -118,7 +123,7 @@ export class Catalog {
 
     public listNodesForService(
         serviceName: string,
-        requestOptions: CoreOptions = {},
+        requestOptions: OptionsOfJSONResponseBody = {},
     ): Promise<Array<IServiceHealthDescription>> {
         const extendedOptions = Utils.deepMerge(
             this.baseOptions,
@@ -145,7 +150,9 @@ export class Catalog {
             .then((res: Response) => {
                 switch (res.statusCode) {
                     case 200:
-                        return Promise.resolve(res.body)
+                        return Promise.resolve(
+                            res.body as Array<IServiceHealthDescription>,
+                        )
 
                     default:
                         return Promise.reject(new Error(res.statusMessage))
@@ -155,7 +162,7 @@ export class Catalog {
 
     public resolveAddress(
         serviceName: string,
-        requestOptions: CoreOptions = {},
+        requestOptions: OptionsOfJSONResponseBody = {},
     ): Promise<string> {
         return this.listNodesForService(serviceName, requestOptions).then(
             (res: Array<IServiceHealthDescription>) => {
@@ -185,9 +192,8 @@ export class Catalog {
     }
 
     public ignoreAddress(serviceName: string): void {
-        const observer: Observer<string> | undefined = this.watchMap.get(
-            serviceName,
-        )
+        const observer: Observer<string> | undefined =
+            this.watchMap.get(serviceName)
         if (observer !== undefined) {
             observer.destroy()
             this.watchMap.delete(serviceName)
@@ -196,7 +202,7 @@ export class Catalog {
 
     public watchAddress(
         serviceName: string,
-        requestOptions: CoreOptions = {},
+        requestOptions: OptionsOfJSONResponseBody = {},
     ): Observer<string> {
         const extendedOptions = Utils.deepMerge(
             this.baseOptions,
@@ -223,12 +229,12 @@ export class Catalog {
                         },
                         extendedOptions,
                     )
-                    .then((res: RequestResponse) => {
+                    .then((res: Response) => {
                         if (this.watchMap.has(serviceName)) {
                             switch (res.statusCode) {
                                 case 200:
                                     const metadata: Array<IServiceHealthDescription> =
-                                        res.body
+                                        res.body as Array<IServiceHealthDescription>
                                     // Pick a random service from the list of healthy services
                                     const ID = Math.floor(
                                         Math.random() * metadata.length,

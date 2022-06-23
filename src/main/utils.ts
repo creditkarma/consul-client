@@ -1,6 +1,5 @@
 import * as url from 'url'
-import merge = require('lodash/merge')
-import isEqual = require('lodash/isEqual')
+import { merge, isEqual } from 'lodash'
 
 import {
     CONSUL_ADDRESS,
@@ -122,7 +121,7 @@ export function headersForRequest(req: KVRequest | CatalogRequest): IHeaderMap {
     }
 
     if (req.index !== undefined) {
-        headers[CONSUL_INDEX_HEADER] = req.index + 1
+        headers[CONSUL_INDEX_HEADER] = (req.index + 1).toString()
     }
 
     if ((req as KVRequest).token) {

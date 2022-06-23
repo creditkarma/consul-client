@@ -1,4 +1,4 @@
-import { CoreOptions, RequestResponse } from 'request'
+import { OptionsOfJSONResponseBody, Response } from 'got'
 
 export interface IQueryMap {
     index?: number
@@ -11,9 +11,12 @@ export interface IQueryMap {
 }
 
 export interface IHeaderMap {
-    [key: string]: string | number | undefined
+    [key: string]: string | undefined
 }
 
 export interface IConsulClient<ConsulRequest> {
-    send(req: ConsulRequest, options?: CoreOptions): Promise<RequestResponse>
+    send(
+        req: ConsulRequest,
+        options?: OptionsOfJSONResponseBody,
+    ): Promise<Response>
 }

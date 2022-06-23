@@ -69,7 +69,7 @@ describe('KvStore', () => {
         })
 
         it('should watch for changes to a service address', async () => {
-            return new Promise((resolve, reject) => {
+            return new Promise<void>((resolve, reject) => {
                 let count: number = 0
                 client.watchAddress('my-thing').onValue((next: string) => {
                     if (count === 0) {
@@ -174,7 +174,7 @@ describe('KvStore', () => {
         })
 
         it('should watch for changes to a service address', async () => {
-            return new Promise((resolve, reject) => {
+            return new Promise<void>((resolve, reject) => {
                 let count: number = 0
                 client.watchAddress('my-thing').onValue((next: string) => {
                     if (count === 0) {

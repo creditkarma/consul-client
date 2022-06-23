@@ -107,7 +107,7 @@ export interface IRegisterEntityPayload {
 
 export interface IRegisterEntityRequest extends ICatalogRequest {
     type: CatalogRequestType.RegisterEntityRequest
-    paylaod: IRegisterEntityPayload
+    payload: IRegisterEntityPayload
 }
 
 export interface IDeregisterEntityRequest extends ICatalogRequest {

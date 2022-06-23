@@ -1,5 +1,6 @@
-import { CoreOptions, RequestResponse } from 'request'
-import * as rpn from 'request-promise-native'
+import { HTTPError, OptionsOfJSONResponseBody, Response } from 'got'
+
+import got from 'got'
 
 import { KVRequest, RequestType } from './types'
 
@@ -12,61 +13,70 @@ import {
 
 import { BaseClient } from '../BaseClient'
 
-const request = rpn.defaults({
-    json: true,
-    simple: false,
-    resolveWithFullResponse: true,
-})
-
+import * as logger from '../logger'
 export class ConsulClient extends BaseClient<KVRequest> {
-    protected processRequest(
+    protected async processRequest(
         req: KVRequest,
-        options: CoreOptions,
-    ): Promise<RequestResponse> {
-        switch (req.type) {
-            case RequestType.GetRequest:
-                return request(
-                    deepMerge(options, {
-                        uri: this.getPathForRequest(req),
-                        method: 'GET',
-                        headers: headersForRequest(req),
-                        qs: cleanQueryParams({
-                            dc: req.key.dc,
-                            index: req.index,
+        options: OptionsOfJSONResponseBody = {},
+    ): Promise<Response> {
+        try {
+            switch (req.type) {
+                case RequestType.GetRequest:
+                    return await got(
+                        this.getPathForRequest(req),
+                        deepMerge(options, {
+                            method: 'GET',
+                            headers: headersForRequest(req),
+                            searchParams: cleanQueryParams({
+                                dc: req.key.dc,
+                                index: req.index,
+                            }),
+                            responseType: 'json',
                         }),
-                    }),
-                ).promise()
-
-            case RequestType.UpdateRequest:
-                return request(
-                    deepMerge(options, {
-                        uri: this.getPathForRequest(req),
-                        body: req.value,
-                        method: 'PUT',
-                        headers: headersForRequest(req),
-                        qs: cleanQueryParams({
-                            dc: req.key.dc,
+                    )
+                case RequestType.UpdateRequest:
+                    return await got(
+                        this.getPathForRequest(req),
+                        deepMerge(options, {
+                            body: Buffer.from(JSON.stringify(req.value)),
+                            method: 'PUT',
+                            headers: headersForRequest(req),
+                            searchParams: cleanQueryParams({
+                                dc: req.key.dc,
+                            }),
+                            responseType: 'json',
                         }),
-                    }),
-                ).promise()
-
-            case RequestType.DeleteRequest:
-                return request(
-                    deepMerge(options, {
-                        uri: this.getPathForRequest(req),
-                        method: 'DELETE',
-                        headers: headersForRequest(req),
-                        qs: cleanQueryParams({
-                            dc: req.key.dc,
+                    )
+                case RequestType.DeleteRequest:
+                    return await got(
+                        this.getPathForRequest(req),
+                        deepMerge(options, {
+                            method: 'DELETE',
+                            headers: headersForRequest(req),
+                            searchParams: cleanQueryParams({
+                                dc: req.key.dc,
+                            }),
+                            responseType: 'json',
                         }),
-                    }),
-                ).promise()
-
-            default:
-                const msg: never = req
-                return Promise.reject(
-                    new Error(`Unsupported request type: ${msg}`),
+                    )
+                default:
+                    const msg: never = req
+                    return Promise.reject(
+                        new Error(`Unsupported request type: ${msg}`),
+                    )
+            }
+        } catch (err) {
+            if (err instanceof HTTPError) {
+                // Allow non 2xx/3xx responses to resolve upstream
+                return err.response
+            } else {
+                logger.error(
+                    `Unexpected error on ${req.type}: ${
+                        err instanceof Error ? err.message : err
+                    }`,
                 )
+                throw err
+            }
         }
     }
 
